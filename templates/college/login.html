@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-lg border-0 rounded-4">
+                <div class="card-body p-5">
+                    <div class="text-center mb-4">
+                        <i class="bi bi-shield-lock" style="font-size: 4rem; color: var(--primary-light);"></i>
+                        <h2 class="mt-3 fw-bold" style="color: var(--primary); font-size: 2rem;">Admin Login</h2>
+                        <p class="text-muted" style="font-size: 1.1rem;">Sign in to manage the college portal</p>
+                    </div>
+
+                    {% if form.errors %}
+                        <div class="alert alert-danger d-flex align-items-center" role="alert" style="font-size: 1.05rem;">
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                            Invalid username or password. Please try again.
+                        </div>
+                    {% endif %}
+
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="mb-4">
+                            <label for="id_username" class="form-label fw-semibold" style="font-size: 1.15rem;">Username</label>
+                            <div class="input-group input-group-lg">
+                                <span class="input-group-text"><i class="bi bi-person" style="font-size: 1.3rem;"></i></span>
+                                <input type="text" name="username" id="id_username" class="form-control" placeholder="Enter username" required autofocus style="font-size: 1.1rem; padding: 12px 16px;">
+                            </div>
+                        </div>
+                        <div class="mb-4">
+                            <label for="id_password" class="form-label fw-semibold" style="font-size: 1.15rem;">Password</label>
+                            <div class="input-group input-group-lg">
+                                <span class="input-group-text"><i class="bi bi-lock" style="font-size: 1.3rem;"></i></span>
+                                <input type="password" name="password" id="id_password" class="form-control" placeholder="Enter password" required style="font-size: 1.1rem; padding: 12px 16px;">
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100 py-3 fw-semibold" style="font-size: 1.2rem;">
+                            <i class="bi bi-box-arrow-in-right me-2"></i>Sign In
+                        </button>
+                    </form>
+
+                    <div class="text-center mt-4">
+                        <a href="{% url 'college:home' %}" class="text-decoration-none text-muted" style="font-size: 1.05rem;">
+                            <i class="bi bi-arrow-left me-1"></i>Back to Home
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

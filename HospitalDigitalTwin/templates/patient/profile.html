@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}My Profile{% endblock %}
+{% block content %}
+<style>
+  .pf-container { max-width: 560px; margin: 0 auto; padding: 40px 20px; }
+  .pf-card { background: #fff; border: 1px solid #e9ecef; border-radius: 16px; padding: 24px; }
+  .pf-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; color: #adb5bd; font-weight: 600; }
+  .pf-value { font-size: 1rem; color: #1a1a2e; font-weight: 500; }
+</style>
+<div class="pf-container">
+  <h2 style="font-weight:700;margin-bottom:24px">My Profile</h2>
+  <div class="pf-card">
+    <table style="width:100%;border-collapse:collapse">
+      {% for label, value in profile_fields %}
+      <tr style="border-bottom:1px solid #f1f3f5">
+        <td style="padding:12px 8px 12px 0" class="pf-label">{{ label }}</td>
+        <td style="padding:12px 0 12px 8px" class="pf-value">{{ value }}</td>
+      </tr>
+      {% endfor %}
+    </table>
+  </div>
+</div>
+{% endblock %}

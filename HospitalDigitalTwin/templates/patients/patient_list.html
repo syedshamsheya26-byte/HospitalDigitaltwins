@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Patient Records - Hospital Digital Twin{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-people"></i> Patient Records</h2>
+    <div>
+        <a href="{% url 'dashboard:home' %}" class="btn btn-outline-secondary btn-sm me-2"><i class="bi bi-arrow-left"></i> Back to Dashboard</a>
+        <a href="{% url 'patients:patient_create' %}" class="btn btn-primary"><i class="bi bi-person-plus"></i> Add Patient</a>
+    </div>
+</div>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-6">
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                    <input type="text" class="form-control" name="q" placeholder="Search by name..." value="{{ query }}">
+                </div>
+            </div>
+            <div class="col-md-4">
+                <select name="status" class="form-select">
+                    <option value="">All Statuses</option>
+                    <option value="admitted" {% if request.GET.status == 'admitted' %}selected{% endif %}>Admitted</option>
+                    <option value="discharged" {% if request.GET.status == 'discharged' %}selected{% endif %}>Discharged</option>
+                    <option value="emergency" {% if request.GET.status == 'emergency' %}selected{% endif %}>Emergency</option>
+                    <option value="outpatient" {% if request.GET.status == 'outpatient' %}selected{% endif %}>Outpatient</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-outline-primary w-100">Filter</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Patient ID</th>
+                        <th>Name</th>
+                        <th>Gender</th>
+                        <th>Blood Group</th>
+                        <th>Phone</th>
+                        <th>Status</th>
+                        <th>Admission Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for patient in patients %}
+                    <tr>
+                        <td>{{ patient.patient_id }}</td>
+                        <td><a href="{% url 'patients:patient_detail' patient.pk %}">{{ patient.first_name }} {{ patient.last_name }}</a></td>
+                        <td>{{ patient.get_gender_display }}</td>
+                        <td>{{ patient.blood_group }}</td>
+                        <td>{{ patient.phone }}</td>
+                        <td>
+                            <span class="badge bg-{% if patient.status == 'admitted' %}success{% elif patient.status == 'discharged' %}secondary{% elif patient.status == 'emergency' %}danger{% elif patient.status == 'outpatient' %}info{% endif %}">
+                                {{ patient.get_status_display }}
+                            </span>
+                        </td>
+                        <td>{{ patient.admission_date|date:"Y-m-d H:i"|default:"-" }}</td>
+                        <td>
+                            <a href="{% url 'patients:patient_detail' patient.pk %}" class="btn btn-sm btn-info"><i class="bi bi-eye"></i></a>
+                            <a href="{% url 'patients:patient_update' patient.pk %}" class="btn btn-sm btn-warning"><i class="bi bi-pencil"></i></a>
+                            <a href="{% url 'patients:patient_delete' patient.pk %}" class="btn btn-sm btn-danger"><i class="bi bi-trash"></i></a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="text-center text-muted py-4">
+                            <i class="bi bi-inbox" style="font-size: 2rem;"></i>
+                            <p class="mt-2 mb-0">No patients found.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

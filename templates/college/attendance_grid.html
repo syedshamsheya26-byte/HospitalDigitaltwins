@@ -1,0 +1,122 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="text-center mb-4">
+    <h2 class="fw-bold">📋 Attendance Grid</h2>
+    <p class="text-muted fs-5">Click a cell to toggle — inline AJAX, no page reload</p>
+    <span class="badge bg-warning text-dark fs-6">Module 6.2 — Inline Editable Grid</span>
+    <div class="mt-2">
+      <span class="text-muted">Date:</span>
+      <strong id="attendance-date">{{ today|date:"Y-m-d" }}</strong>
+    </div>
+  </div>
+
+  <!-- Spinner -->
+  <div id="spinner" class="text-center py-4 d-none">
+    <div class="spinner-border text-primary"></div>
+  </div>
+
+  <!-- Grid -->
+  <div id="grid-container" class="table-responsive">
+    <table class="table table-bordered table-hover align-middle">
+      <thead class="table-dark">
+        <tr>
+          <th style="min-width:120px">Student</th>
+          <th style="min-width:80px">Roll</th>
+          <th style="min-width:130px">Department</th>
+          <th style="min-width:120px">Status</th>
+        </tr>
+      </thead>
+      <tbody id="grid-tbody">
+        <tr><td colspan="4" class="text-center text-muted py-4">Loading…</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Legend -->
+  <div class="d-flex gap-3 justify-content-center mt-3">
+    <span><span class="badge bg-success">&nbsp;&nbsp;</span> Present</span>
+    <span><span class="badge bg-danger">&nbsp;&nbsp;</span> Absent</span>
+    <span><span class="badge bg-warning text-dark">&nbsp;&nbsp;</span> Leave</span>
+    <span><span class="badge bg-secondary">&nbsp;&nbsp;</span> Not marked</span>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function getCookie(name) {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop().split(";").shift();
+}
+const csrftoken = getCookie("csrftoken");
+const today = document.getElementById("attendance-date").textContent;
+
+const statusCycle = { "—": "Present", "Present": "Absent", "Absent": "Leave", "Leave": "Present" };
+const statusClass = { "Present": "bg-success text-white", "Absent": "bg-danger text-white", "Leave": "bg-warning text-dark", "—": "bg-secondary text-white" };
+
+// ── Load grid ─────────────────────────────────────────────────────────
+async function loadGrid() {
+  const spinner = document.getElementById("spinner");
+  const tbody = document.getElementById("grid-tbody");
+  spinner.classList.remove("d-none");
+  try {
+    const r = await fetch("/api/attendance/today/");
+    const data = await r.json();
+    tbody.innerHTML = data.students.map(s => {
+      const cls = statusClass[s.status] || "bg-secondary text-white";
+      return `<tr>
+        <td><strong>${escapeHtml(s.name)}</strong></td>
+        <td>${escapeHtml(s.roll)}</td>
+        <td>${escapeHtml(s.department)}</td>
+        <td>
+          <span class="badge ${cls} status-badge fs-6" style="cursor:pointer;min-width:70px"
+                data-student-id="${s.id}" data-status="${s.status}">
+            ${s.status}
+          </span>
+        </td>
+      </tr>`;
+    }).join("");
+  } catch {
+    tbody.innerHTML = `<tr><td colspan="4" class="text-center text-danger py-4">Failed to load.</td></tr>`;
+  } finally {
+    spinner.classList.add("d-none");
+  }
+}
+
+function escapeHtml(str) {
+  const div = document.createElement("div");
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+// ── Toggle attendance (POST) ──────────────────────────────────────────
+async function toggleAttendance(studentId, currentStatus) {
+  const nextStatus = statusCycle[currentStatus] || "Present";
+  try {
+    const r = await fetch("/api/attendance/toggle/", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-CSRFToken": csrftoken },
+      body: JSON.stringify({ student_id: studentId, date: today, status: nextStatus }),
+    });
+    if (!r.ok) throw new Error("Failed");
+    loadGrid();
+  } catch {
+    alert("Failed to update attendance.");
+  }
+}
+
+// ── Delegation on tbody ───────────────────────────────────────────────
+document.getElementById("grid-tbody").addEventListener("click", (e) => {
+  const badge = e.target.closest(".status-badge");
+  if (badge) {
+    toggleAttendance(badge.dataset.studentId, badge.dataset.status);
+  }
+});
+
+document.addEventListener("DOMContentLoaded", loadGrid);
+</script>
+{% endblock %}

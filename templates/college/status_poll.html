@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <div class="text-center mb-5">
+        <h2 class="fw-bold">📡 Server Status</h2>
+        <p class="text-muted fs-5">Polling endpoint every 10 seconds — <code>setInterval</code> + <code>fetch()</code></p>
+        <span class="badge bg-danger fs-6">Module 6.2 — Broadcast Polling</span>
+      </div>
+
+      <!-- Live indicator -->
+      <div class="text-center mb-4">
+        <span id="live-dot" class="badge bg-success fs-6">● LIVE</span>
+        <span class="text-muted ms-2" id="last-updated">Waiting…</span>
+      </div>
+
+      <!-- Stat cards -->
+      <div class="row g-3" id="stats-row">
+        <div class="col-md-4">
+          <div class="card border-primary border-2 shadow-sm text-center h-100">
+            <div class="card-body">
+              <div class="fs-1 fw-bold text-primary" id="stat-students">—</div>
+              <div class="text-muted">Students</div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card border-success border-2 shadow-sm text-center h-100">
+            <div class="card-body">
+              <div class="fs-1 fw-bold text-success" id="stat-courses">—</div>
+              <div class="text-muted">Courses</div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card border-warning border-2 shadow-sm text-center h-100">
+            <div class="card-body">
+              <div class="fs-1 fw-bold text-warning" id="stat-staff">—</div>
+              <div class="text-muted">Staff</div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card border-info border-2 shadow-sm text-center h-100">
+            <div class="card-body">
+              <div class="fs-1 fw-bold text-info" id="stat-attendance">—</div>
+              <div class="text-muted">Attendance Today</div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card border-secondary border-2 shadow-sm text-center h-100">
+            <div class="card-body">
+              <div class="fs-1 fw-bold text-secondary" id="stat-guestbook">—</div>
+              <div class="text-muted">Guestbook Entries</div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card border-danger border-2 shadow-sm text-center h-100">
+            <div class="card-body">
+              <div class="fs-1 fw-bold text-danger" id="stat-marks">—</div>
+              <div class="text-muted">Marks Entered</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Server time -->
+      <div class="text-center mt-4">
+        <p class="text-muted mb-1">Server Time</p>
+        <h3 class="fw-bold" id="server-time">—</h3>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// ── Polling: fetch every 10 seconds ───────────────────────────────────
+async function pollStatus() {
+  const dot = document.getElementById("live-dot");
+  try {
+    const r = await fetch("/api/status/");
+    const data = await r.json();
+
+    document.getElementById("stat-students").textContent = data.student_count;
+    document.getElementById("stat-courses").textContent = data.course_count;
+    document.getElementById("stat-staff").textContent = data.staff_count;
+    document.getElementById("stat-attendance").textContent = data.attendance_today;
+    document.getElementById("stat-guestbook").textContent = data.guestbook_entries;
+    document.getElementById("stat-marks").textContent = data.marks_count;
+    document.getElementById("server-time").textContent = data.server_time;
+    document.getElementById("last-updated").textContent = `Last updated: ${new Date().toLocaleTimeString()}`;
+
+    dot.className = "badge bg-success fs-6";
+    dot.textContent = "● LIVE";
+  } catch {
+    dot.className = "badge bg-danger fs-6";
+    dot.textContent = "● OFFLINE";
+  }
+}
+
+// Initial load
+pollStatus();
+
+// setInterval — poll every 10 000 ms
+setInterval(pollStatus, 10000);
+</script>
+{% endblock %}

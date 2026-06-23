@@ -1,0 +1,11 @@
+patient_id,first_name,last_name,date_of_birth,gender,blood_group,phone,email,address,emergency_contact,emergency_relation,status
+PAT-001,Rajesh,Sharma,1985-03-15,M,O+,9876543210,rajesh.sharma@email.com,123 MG Road Mumbai,9876500001,Spouse,admitted
+PAT-002,Priya,Patel,1990-07-22,F,A+,9876543211,priya.patel@email.com,456 LBS Marg Delhi,9876500002,Parent,outpatient
+PAT-003,Amit,Singh,1975-11-08,M,B+,9876543212,amit.singh@email.com,789 Ring Road Bangalore,9876500003,Sibling,admitted
+PAT-004,Sunita,Verma,1982-05-30,F,AB+,9876543213,sunita.verma@email.com,321 Park Street Kolkata,9876500004,Spouse,discharged
+PAT-005,Vikram,Kumar,1968-09-12,M,A-,9876543214,vikram.kumar@email.com,654 Civil Lines Chennai,9876500005,Child,emergency
+PAT-006,Ananya,Gupta,1995-01-18,F,B-,9876543215,ananya.gupta@email.com,987 Lake Road Hyderabad,9876500006,Parent,outpatient
+PAT-007,Deepak,Joshi,1972-04-25,M,A+,9876543216,deepak.joshi@email.com,147 Nehru Street Pune,9876500007,Spouse,admitted
+PAT-008,Kavita,Reddy,1988-08-14,F,O-,9876543217,kavita.reddy@email.com,258 Gandhi Nagar Ahmedabad,9876500008,Sibling,admitted
+PAT-009,Suresh,Patel,1960-12-03,M,AB-,9876543218,suresh.patel@email.com,369 MG Road Jaipur,9876500009,Child,emergency
+PAT-010,Meera,Sharma,1992-06-28,F,A+,9876543219,meera.sharma@email.com,159 Model Town Lucknow,9876500010,Parent,discharged

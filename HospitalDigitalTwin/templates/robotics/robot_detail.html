@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Robot Detail{% endblock %}
+{% block content %}
+<div class="container">
+    <h2 class="mb-4"><i class="bi bi-robot text-primary"></i> {{ robot.name }}</h2>
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card shadow mb-4">
+                <div class="card-body">
+                    <table class="table">
+                        <tr><th>Robot ID</th><td>{{ robot.robot_id }}</td></tr>
+                        <tr><th>Type</th><td>{{ robot.robot_type }}</td></tr>
+                        <tr><th>Status</th><td><span class="badge bg-{% if robot.status == 'available' %}success{% elif robot.status == 'in_use' %}warning{% elif robot.status == 'maintenance' %}danger{% else %}secondary{% endif %}">{{ robot.get_status_display }}</span></td></tr>
+                        <tr><th>Location</th><td>{{ robot.location }}</td></tr>
+                        <tr><th>Last Maintenance</th><td>{{ robot.last_maintenance|default:'N/A' }}</td></tr>
+                        <tr><th>Next Maintenance</th><td>{{ robot.next_maintenance|default:'N/A' }}</td></tr>
+                    </table>
+                    <a href="{% url 'robotics:robot_update' robot.pk %}" class="btn btn-primary"><i class="bi bi-pencil"></i> Edit</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white"><i class="bi bi-list"></i> Recent Procedures</div>
+                <div class="card-body">
+                    {% if procedures %}
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead><tr><th>Patient</th><th>Type</th><th>Date</th><th>Status</th></tr></thead>
+                            <tbody>
+                                {% for p in procedures %}
+                                <tr>
+                                    <td>{{ p.patient_name }}</td>
+                                    <td>{{ p.procedure_type }}</td>
+                                    <td>{{ p.scheduled_date }}</td>
+                                    <td><span class="badge bg-{% if p.status == 'completed' %}success{% elif p.status == 'cancelled' %}danger{% elif p.status == 'in_progress' %}warning{% else %}info{% endif %}">{{ p.get_status_display }}</span></td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-muted">No procedures yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

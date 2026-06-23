@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Hospital Digital Twin{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="{% static 'css/style.css' %}" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    {% if user.is_authenticated %}
+    {% with role=user.userrole.role %}
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="{% url 'dashboard:home' %}">
+                <i class="bi bi-hospital"></i> Hospital Digital Twin
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'dashboard:home' %}"><i class="bi bi-speedometer2"></i> Dashboard</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-people"></i> Patients
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{% url 'patients:patient_list' %}">All Patients</a></li>
+                            <li><a class="dropdown-item" href="{% url 'patients:patient_create' %}">Add Patient</a></li>
+                            <li><a class="dropdown-item" href="{% url 'patients:patient_session_list' %}">Patient Sessions</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-shield-exclamation"></i> Disease Risk
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{% url 'disease_risk:risk_assessment' %}">Risk Assessment</a></li>
+                            <li><a class="dropdown-item" href="{% url 'disease_risk:prediction_history' %}">Prediction History</a></li>
+                            <li><a class="dropdown-item" href="{% url 'disease_risk:disease_analytics' %}">Disease Analytics</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-calendar-check"></i> Appointments
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{% url 'appointments:appointment_list' %}">All Appointments</a></li>
+                            <li><a class="dropdown-item" href="{% url 'appointments:appointment_create' %}">Book Appointment</a></li>
+                            <li><a class="dropdown-item" href="{% url 'appointments:my_appointments' %}">My Appointments</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-bed"></i> Beds
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{% url 'beds:bed_list' %}">All Beds</a></li>
+                            <li><a class="dropdown-item" href="{% url 'beds:occupancy_dashboard' %}">Occupancy Dashboard</a></li>
+                            <li><a class="dropdown-item" href="{% url 'beds:ward_list' %}">Wards</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-capsule"></i> Inventory
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{% url 'inventory:medicine_list' %}">Medicines</a></li>
+                            <li><a class="dropdown-item" href="{% url 'inventory:inventory_list' %}">Stock</a></li>
+                            <li><a class="dropdown-item" href="{% url 'inventory:inventory_dashboard' %}">Stock Dashboard</a></li>
+                            <li><a class="dropdown-item" href="{% url 'inventory:low_stock_alerts' %}">Alerts</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-graph-up"></i> Analytics
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{% url 'analytics:analytics_dashboard' %}">Analytics Dashboard</a></li>
+                            <li><a class="dropdown-item" href="{% url 'analytics:daily_admissions' %}">Daily Admissions</a></li>
+                            <li><a class="dropdown-item" href="{% url 'analytics:monthly_admissions' %}">Monthly Admissions</a></li>
+                            <li><a class="dropdown-item" href="{% url 'analytics:bed_utilization' %}">Bed Utilization</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-robot"></i> Predictions
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{% url 'predictions:prediction_dashboard' %}">Prediction Dashboard</a></li>
+                            <li><a class="dropdown-item" href="{% url 'predictions:predict_bed_occupancy' %}">Bed Occupancy</a></li>
+                            <li><a class="dropdown-item" href="{% url 'predictions:predict_medicine_shortage' %}">Medicine Shortage</a></li>
+                            <li><a class="dropdown-item" href="{% url 'predictions:predict_patient_load' %}">Patient Load</a></li>
+                            <li><a class="dropdown-item" href="{% url 'predictions:risk_prediction' %}">Risk Prediction</a></li>
+                            <li><a class="dropdown-item" href="{% url 'predictions:risk_prediction_list' %}">Risk History</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-camera-video"></i> Telemedicine
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{% url 'telemedicine:session_list' %}">All Sessions</a></li>
+                            <li><a class="dropdown-item" href="{% url 'telemedicine:session_create' %}">Start Session</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-robot"></i> Robotics
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{% url 'robotics:robot_list' %}">Surgical Robots</a></li>
+                            <li><a class="dropdown-item" href="{% url 'robotics:procedure_list' %}">Procedures</a></li>
+                            <li><a class="dropdown-item" href="{% url 'robotics:procedure_create' %}">Schedule Procedure</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-file-text"></i> Reports
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{% url 'reports:report_list' %}">All Reports</a></li>
+                            <li><a class="dropdown-item" href="{% url 'reports:generate_admission_report' %}">Admission PDF</a></li>
+                            <li><a class="dropdown-item" href="{% url 'reports:generate_inventory_report' %}">Inventory PDF</a></li>
+                            <li><a class="dropdown-item" href="{% url 'reports:export_admissions_excel' %}">Admission Excel</a></li>
+                            <li><a class="dropdown-item" href="{% url 'reports:export_inventory_excel' %}">Inventory Excel</a></li>
+                        </ul>
+                    </li>
+                </ul>
+                <ul class="navbar-nav">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-person-circle"></i> {{ user.username }}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="#"><i class="bi bi-person"></i> Profile</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{% url 'accounts:logout' %}"><i class="bi bi-box-arrow-right"></i> Logout</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    {% endwith %}
+    {% elif request.session.patient_name %}
+    <nav class="navbar navbar-expand-lg navbar-dark bg-success shadow-sm">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="{% url 'dashboard:patient_dashboard' %}">
+                <i class="bi bi-hospital"></i> Hospital Digital Twin
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#patientNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="patientNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'dashboard:patient_dashboard' %}"><i class="bi bi-speedometer2"></i> Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'dashboard:patient_profile' %}"><i class="bi bi-person"></i> My Profile</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'dashboard:patient_medical_history' %}"><i class="bi bi-file-medical"></i> Medical History</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'dashboard:patient_disease_risk_results' %}"><i class="bi bi-shield-exclamation"></i> Risk Results</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'dashboard:patient_health_analytics' %}"><i class="bi bi-graph-up"></i> Analytics</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'dashboard:patient_reports' %}"><i class="bi bi-download"></i> Reports</a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'accounts:logout' %}">
+                            <i class="bi bi-box-arrow-right"></i> Logout ({{ request.session.patient_name }})
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    {% endif %}
+
+    {% if messages %}
+    <div class="container-fluid mt-2">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <main class="{% if user.is_authenticated or request.session.patient_name %}container-fluid py-3{% endif %}">
+        {% block content %}{% endblock %}
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="{% static 'js/main.js' %}"></script>
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>

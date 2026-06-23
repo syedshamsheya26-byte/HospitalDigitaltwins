@@ -1,0 +1,126 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Bed Occupancy Prediction - Hospital Digital Twin{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2><i class="bi bi-bed"></i> Bed Occupancy Prediction</h2>
+        <p class="text-muted mb-0">Predict future bed occupancy using linear regression on historical data</p>
+    </div>
+    <a href="{% url 'predictions:prediction_dashboard' %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i> Back to Predictions</a>
+</div>
+
+<div class="row g-4">
+    <div class="col-md-4">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="bi bi-gear"></i> Prediction Controls</h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <p class="text-muted">Click the button below to run the bed occupancy prediction model. The model uses historical occupancy data to forecast future trends.</p>
+                    <button type="submit" class="btn btn-primary w-100 py-2">
+                        <i class="bi bi-play-fill"></i> Run Prediction
+                    </button>
+                </form>
+                {% if model_trained %}
+                <hr>
+                <div class="small">
+                    <p class="mb-1"><strong>R² Score:</strong> {{ r2_score|default:"N/A" }}%</p>
+                    <p class="mb-0"><strong>Training Samples:</strong> {{ training_samples|default:"N/A" }}</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-8">
+        {% if predictions %}
+        <div class="card shadow-sm mb-3">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="bi bi-table"></i> Prediction Results</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Predicted Occupancy</th>
+                                <th>Confidence Score</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for pred in predictions %}
+                            <tr>
+                                <td>{{ pred.predicted_date|date:"d M Y" }}</td>
+                                <td>{{ pred.predicted_value|floatformat:0 }}</td>
+                                <td><span class="badge bg-{% if pred.confidence_score > 80 %}success{% elif pred.confidence_score > 60 %}warning{% else %}danger{% endif %}">{{ pred.confidence_score }}%</span></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="bi bi-graph-up"></i> Occupancy Trend Chart</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="occupancyChart" height="120"></canvas>
+            </div>
+        </div>
+        {% else %}
+        <div class="card shadow-sm">
+            <div class="card-body text-center py-5">
+                <i class="bi bi-graph-up text-muted" style="font-size: 4rem;"></i>
+                <h4 class="mt-3 text-muted">Run prediction to see results</h4>
+                <p class="text-muted">Click "Run Prediction" to generate bed occupancy forecasts</p>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+{% if predictions %}
+<script>
+const ctx = document.getElementById('occupancyChart').getContext('2d');
+const labels = [{% for pred in predictions %}'{{ pred.predicted_date|date:"d M" }}'{% if not forloop.last %},{% endif %}{% endfor %}];
+const values = [{% for pred in predictions %}{{ pred.predicted_value|floatformat:0 }}{% if not forloop.last %},{% endif %}{% endfor %}];
+const confidence = [{% for pred in predictions %}{{ pred.confidence_score }}{% if not forloop.last %},{% endif %}{% endfor %}];
+
+new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: labels,
+        datasets: [{
+            label: 'Predicted Occupancy',
+            data: values,
+            borderColor: '#0d6efd',
+            backgroundColor: 'rgba(13,110,253,0.1)',
+            fill: true,
+            tension: 0.3,
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            tooltip: {
+                callbacks: {
+                    afterLabel: function(context) {
+                        return 'Confidence: ' + confidence[context.dataIndex] + '%';
+                    }
+                }
+            }
+        }
+    }
+});
+</script>
+{% endif %}
+{% endblock %}

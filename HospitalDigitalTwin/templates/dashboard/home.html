@@ -1,0 +1,282 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Dashboard - Hospital Digital Twin{% endblock %}
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h2><i class="bi bi-hospital"></i> Hospital Digital Twin Overview</h2>
+        <p class="text-muted">Real-time hospital operations monitoring and predictions</p>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card border-primary border-start border-4 shadow-sm">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="text-muted">Total Patients</h6>
+                        <h3 class="mb-0">{{ total_patients }}</h3>
+                    </div>
+                    <i class="bi bi-people text-primary" style="font-size: 2rem;"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-success border-start border-4 shadow-sm">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="text-muted">Available Beds</h6>
+                        <h3 class="mb-0 text-success">{{ available_beds }}/{{ total_beds }}</h3>
+                    </div>
+                    <i class="bi bi-bed text-success" style="font-size: 2rem;"></i>
+                </div>
+                <small class="text-muted">ICU: {{ icu_beds_available }} | Emergency: {{ emergency_beds_available }} | General: {{ general_beds_available }}</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-info border-start border-4 shadow-sm">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="text-muted">Active Doctors</h6>
+                        <h3 class="mb-0 text-info">{{ total_doctors }}</h3>
+                    </div>
+                    <i class="bi bi-person-badge text-info" style="font-size: 2rem;"></i>
+                </div>
+                <small class="text-muted">Today's Appointments: {{ today_appointments }}</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-warning border-start border-4 shadow-sm">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="text-muted">Alerts</h6>
+                        <h3 class="mb-0 text-warning">{{ low_stock_medicines }}</h3>
+                    </div>
+                    <i class="bi bi-exclamation-triangle text-warning" style="font-size: 2rem;"></i>
+                </div>
+                <small class="text-muted">Low Stock: {{ low_stock_medicines }} | Expired: {{ expired_medicines }}</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-8">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="bi bi-graph-up"></i> Bed Occupancy Overview</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="bedOccupancyChart" height="100"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="bi bi-pie-chart"></i> Bed Distribution</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="bedDistributionChart" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-md-6">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-people"></i> Recent Patients</h5>
+                <a href="{% url 'patients:patient_list' %}" class="btn btn-sm btn-outline-primary">View All</a>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for p in recent_patients %}
+                            <tr>
+                                <td>{{ p.patient_id }}</td>
+                                <td><a href="{% url 'patients:patient_detail' p.id %}">{{ p.first_name }} {{ p.last_name }}</a></td>
+                                <td><span class="badge bg-{% if p.status == 'admitted' %}success{% elif p.status == 'emergency' %}danger{% else %}secondary{% endif %}">{{ p.get_status_display }}</span></td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="3" class="text-center text-muted py-3">No patients yet</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-calendar-check"></i> Upcoming Appointments</h5>
+                <a href="{% url 'appointments:appointment_list' %}" class="btn btn-sm btn-outline-primary">View All</a>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Patient</th>
+                                <th>Doctor</th>
+                                <th>Date</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for apt in upcoming_appointments %}
+                            <tr>
+                                <td>{{ apt.patient.first_name }} {{ apt.patient.last_name }}</td>
+                                <td>Dr. {{ apt.doctor.first_name }}</td>
+                                <td>{{ apt.appointment_date|date:"d M Y" }} {{ apt.appointment_time|time:"H:i" }}</td>
+                                <td><span class="badge bg-{% if apt.status == 'scheduled' %}primary{% elif apt.status == 'completed' %}success{% elif apt.status == 'cancelled' %}danger{% else %}secondary{% endif %}">{{ apt.get_status_display }}</span></td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="4" class="text-center text-muted py-3">No upcoming appointments</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mt-1">
+    <div class="col-md-4">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="bi bi-building"></i> Department Overview</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-sm mb-0">
+                        <thead>
+                            <tr><th>Department</th><th>Patients</th></tr>
+                        </thead>
+                        <tbody>
+                            {% for dept in department_data %}
+                            <tr>
+                                <td>{{ dept.name }}</td>
+                                <td><span class="badge bg-primary">{{ dept.count }}</span></td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="2" class="text-center text-muted">No data</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="bi bi-robot"></i> Recent Predictions</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-sm mb-0">
+                        <thead>
+                            <tr><th>Type</th><th>Date</th><th>Value</th><th>Confidence</th></tr>
+                        </thead>
+                        <tbody>
+                            {% for pred in recent_predictions %}
+                            <tr>
+                                <td>{{ pred.get_prediction_type_display }}</td>
+                                <td>{{ pred.predicted_date|date:"d M" }}</td>
+                                <td>{{ pred.predicted_value }}</td>
+                                <td><span class="badge bg-{% if pred.confidence_score > 80 %}success{% elif pred.confidence_score > 60 %}warning{% else %}danger{% endif %}">{{ pred.confidence_score }}%</span></td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="4" class="text-center text-muted">No predictions yet</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="bi bi-shield-exclamation"></i> Risk Alerts</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-sm mb-0">
+                        <thead>
+                            <tr><th>Patient</th><th>Risk Level</th><th>Score</th></tr>
+                        </thead>
+                        <tbody>
+                            {% for risk in risk_alerts %}
+                            <tr>
+                                <td>{{ risk.patient_name }}</td>
+                                <td><span class="badge bg-{% if risk.risk_level == 'critical' %}dark{% elif risk.risk_level == 'high' %}danger{% elif risk.risk_level == 'medium' %}warning{% else %}success{% endif %}">{{ risk.risk_level|title }}</span></td>
+                                <td>{{ risk.risk_score|floatformat:1 }}%</td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="3" class="text-center text-muted">No risk alerts</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+const ctx1 = document.getElementById('bedOccupancyChart').getContext('2d');
+new Chart(ctx1, {
+    type: 'line',
+    data: {
+        labels: ['ICU', 'General', 'Emergency', 'Private'],
+        datasets: [{
+            label: 'Total',
+            data: [{{ icu_beds_available|default:0 }}, {{ general_beds_available|default:0 }}, {{ emergency_beds_available|default:0 }}, 0],
+            borderColor: '#0d6efd',
+            backgroundColor: 'rgba(13,110,253,0.1)',
+        }, {
+            label: 'Occupied',
+            data: [0, 0, 0, 0],
+            borderColor: '#dc3545',
+            backgroundColor: 'rgba(220,53,69,0.1)',
+        }]
+    },
+    options: { responsive: true, maintainAspectRatio: false }
+});
+
+const ctx2 = document.getElementById('bedDistributionChart').getContext('2d');
+new Chart(ctx2, {
+    type: 'doughnut',
+    data: {
+        labels: ['Available ({{ available_beds }})', 'Occupied ({{ occupied_beds }})'],
+        datasets: [{
+            data: [{{ available_beds }}, {{ occupied_beds }}],
+            backgroundColor: ['#198754', '#dc3545'],
+        }]
+    },
+    options: { responsive: true, maintainAspectRatio: false }
+});
+</script>
+{% endblock %}

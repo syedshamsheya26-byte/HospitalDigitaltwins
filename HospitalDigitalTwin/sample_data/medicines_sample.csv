@@ -1,0 +1,11 @@
+medicine_id,name,generic_name,category_name,dosage_form,strength,manufacturer,unit_price,batch_number,quantity,expiry_date
+MED-001,Amoxicillin,Amoxicillin,Antibiotics,tablet,500mg,Cipla,45.50,B001,500,2027-06-01
+MED-002,Paracetamol,Acetaminophen,Pain Management,tablet,500mg,Sun Pharma,12.00,B002,1000,2027-12-01
+MED-003,Metformin,Metformin HCL,Diabetes Care,tablet,850mg,Dr Reddys,35.00,B003,800,2026-12-01
+MED-004,Atorvastatin,Atorvastatin,Cardiovascular,tablet,10mg,AstraZeneca,120.00,B004,300,2027-03-01
+MED-005,Omeprazole,Omeprazole,Gastrointestinal,capsule,20mg,GSK,85.00,B005,200,2026-09-01
+MED-006,Salbutamol,Albuterol,Respiratory,inhaler,100mcg,Cipla,180.00,B006,150,2027-01-01
+MED-007,Vitamin D3,Cholecalciferol,Vitamins,capsule,60K IU,Abbott,250.00,B007,400,2027-06-01
+MED-008,Aspirin,Aspirin,Pain Management,tablet,75mg,Bayer,15.00,B008,600,2026-08-01
+MED-009,Insulin,Insulin Glargine,Diabetes Care,injection,100IU/ml,Novo Nordisk,650.00,B009,50,2026-07-01
+MED-010,Amiodarone,Amiodarone HCL,Cardiovascular,tablet,200mg,Sanofi,95.00,B010,100,2026-10-01

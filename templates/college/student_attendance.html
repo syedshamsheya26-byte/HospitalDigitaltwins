@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h1 class="card-title">Student Attendance</h1>
+                <p class="card-text">Most recent student attendance records</p>
+                <table class="table table-bordered table-hover mt-3">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Student</th>
+                            <th>Status</th>
+                            <th>Marked By</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for attendance in student_attendance %}
+                            <tr>
+                                <td>{{ attendance.date }}</td>
+                                <td>{{ attendance.student.name }}</td>
+                                <td>{{ attendance.status }}</td>
+                                <td>{% if attendance.marked_by %}{{ attendance.marked_by.name }}{% else %}-{% endif %}</td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="4">No attendance records found.</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

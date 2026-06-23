@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Health Analytics{% endblock %}
+{% block content %}
+<div class="container-fluid">
+    <h2 class="mb-4"><i class="bi bi-graph-up text-success"></i> Personal Health Analytics</h2>
+
+    {% if risks %}
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <div class="card shadow">
+                <div class="card-header bg-success text-white"><i class="bi bi-pie-chart"></i> Risk Distribution</div>
+                <div class="card-body">
+                    <canvas id="riskChart" height="250"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-4">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white"><i class="bi bi-bar-chart"></i> Risk Scores</div>
+                <div class="card-body">
+                    <canvas id="scoreChart" height="250"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="card shadow">
+        <div class="card-header bg-info text-white"><i class="bi bi-table"></i> Risk History</div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-sm">
+                    <thead><tr><th>Date</th><th>Disease</th><th>Risk Level</th><th>Score</th></tr></thead>
+                    <tbody>
+                        {% for r in risks %}
+                        <tr>
+                            <td>{{ r.date }}</td>
+                            <td>{{ r.disease|title }}</td>
+                            <td><span class="badge bg-{% if r.level == 'high' %}danger{% elif r.level == 'medium' %}warning{% else %}success{% endif %}">{{ r.level|title }}</span></td>
+                            <td>{{ r.score }}%</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="alert alert-info">
+        <i class="bi bi-info-circle"></i> No health analytics data available. 
+        <a href="{% url 'disease_risk:risk_assessment' %}" class="alert-link">Take a risk assessment</a> to see your analytics.
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    {% if risks %}
+    var low = 0, med = 0, high = 0;
+    {% for r in risks %}
+    {% if r.level == 'low' %}low++;{% elif r.level == 'medium' %}med++;{% else %}high++;{% endif %}
+    {% endfor %}
+    new Chart(document.getElementById('riskChart'), {
+        type: 'doughnut',
+        data: {
+            labels: ['Low', 'Medium', 'High'],
+            datasets: [{
+                data: [Math.max(low,1), Math.max(med,1), Math.max(high,1)],
+                backgroundColor: ['#198754', '#ffc107', '#dc3545']
+            }]
+        },
+        options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+    });
+    var labels = [], data = [];
+    {% for r in risks reversed %}
+    labels.push('{{ r.disease|title }}');
+    data.push({{ r.score }});
+    {% endfor %}
+    new Chart(document.getElementById('scoreChart'), {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Risk Score',
+                data: data,
+                backgroundColor: '#0d6efd'
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: { y: { beginAtZero: true, max: 100 } }
+        }
+    });
+    {% endif %}
+});
+</script>
+{% endblock %}

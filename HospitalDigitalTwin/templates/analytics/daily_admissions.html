@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Daily Admissions - Hospital Digital Twin{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-calendar-day"></i> Daily Admissions</h2>
+    <a href="{% url 'analytics:analytics_dashboard' %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i> Back to Analytics</a>
+</div>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label">From Date</label>
+                <input type="date" class="form-control" name="start_date" value="{{ start_date|default:'' }}">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">To Date</label>
+                <input type="date" class="form-control" name="end_date" value="{{ end_date|default:'' }}">
+            </div>
+            <div class="col-md-4 d-flex align-items-end">
+                <button type="submit" class="btn btn-outline-primary w-100"><i class="bi bi-funnel"></i> Filter</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <canvas id="admissionsChart" height="100"></canvas>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Date</th>
+                        <th>Total Admissions</th>
+                        <th>Discharges</th>
+                        <th>Emergency Cases</th>
+                        <th>OPD Visits</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for admission in admissions %}
+                    <tr>
+                        <td>{{ admission.date|date:"Y-m-d" }}</td>
+                        <td>{{ admission.total_admissions }}</td>
+                        <td>{{ admission.total_discharges }}</td>
+                        <td>{{ admission.emergency_cases }}</td>
+                        <td>{{ admission.outpatient_visits }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center text-muted py-4">
+                            <i class="bi bi-inbox" style="font-size: 2rem;"></i>
+                            <p class="mt-2 mb-0">No admissions data found for the selected period.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+const ctx = document.getElementById('admissionsChart').getContext('2d');
+new Chart(ctx, {
+    type: 'bar',
+    data: {
+        labels: [{% for a in admissions %}'{{ a.date|date:"M d" }}'{% if not forloop.last %},{% endif %}{% endfor %}],
+        datasets: [
+            {
+                label: 'Admissions',
+                data: [{% for a in admissions %}{{ a.total_admissions }}{% if not forloop.last %},{% endif %}{% endfor %}],
+                backgroundColor: 'rgba(13,110,253,0.7)',
+                borderColor: '#0d6efd',
+                borderWidth: 1
+            },
+            {
+                label: 'Discharges',
+                data: [{% for a in admissions %}{{ a.total_discharges }}{% if not forloop.last %},{% endif %}{% endfor %}],
+                backgroundColor: 'rgba(25,135,84,0.7)',
+                borderColor: '#198754',
+                borderWidth: 1
+            }
+        ]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: true, position: 'top' } },
+        scales: { y: { beginAtZero: true } }
+    }
+});
+</script>
+{% endblock %}

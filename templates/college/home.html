@@ -1,0 +1,725 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<style>
+:root {
+    --primary: #1a365d;
+    --primary-light: #2b6cb0;
+    --accent: #e53e3e;
+    --teal: #2A9D8F;
+}
+
+/* Hero */
+.hero-section {
+    background: linear-gradient(135deg, #0a1628 0%, #1a365d 40%, #1a2744 70%, #0f1b33 100%);
+    min-height: 90vh;
+    display: flex;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+}
+.hero-section::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: url('{% static "images/campus2.jpg" %}') center/cover no-repeat;
+    opacity: 0.06;
+}
+.hero-section .orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(60px);
+    pointer-events: none;
+}
+.hero-section .orb-1 { width: 400px; height: 400px; background: rgba(43,108,176,0.2); top: -100px; left: -100px; animation: orbFloat1 15s ease-in-out infinite; }
+.hero-section .orb-2 { width: 300px; height: 300px; background: rgba(251,191,36,0.12); bottom: -50px; right: -50px; animation: orbFloat2 18s ease-in-out infinite; }
+.hero-section .orb-3 { width: 200px; height: 200px; background: rgba(99,102,241,0.15); top: 50%; right: 20%; animation: orbFloat3 12s ease-in-out infinite; }
+@keyframes orbFloat1 {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    33% { transform: translate(60px, 40px) scale(1.1); }
+    66% { transform: translate(-30px, 80px) scale(0.9); }
+}
+@keyframes orbFloat2 {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    33% { transform: translate(-50px, -60px) scale(1.15); }
+    66% { transform: translate(30px, -30px) scale(0.85); }
+}
+@keyframes orbFloat3 {
+    0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.5; }
+    50% { transform: translate(40px, -40px) scale(1.2); opacity: 1; }
+}
+
+/* Flip text */
+.flip-text { display: inline-block; min-width: 300px; text-align: left; vertical-align: baseline; height: 1.3em; }
+.flip-text span {
+    display: block; animation: flipWords 12s infinite; opacity: 0;
+    position: absolute; left: 0; background: linear-gradient(135deg, #fbbf24, #f59e0b);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    font-weight: 900;
+}
+.flip-text span:nth-child(1) { animation-delay: 0s; }
+.flip-text span:nth-child(2) { animation-delay: 3s; }
+.flip-text span:nth-child(3) { animation-delay: 6s; }
+.flip-text span:nth-child(4) { animation-delay: 9s; }
+@keyframes flipWords {
+    0% { opacity: 0; transform: translateY(25px) scale(0.8); }
+    4% { opacity: 1; transform: translateY(0) scale(1); }
+    21% { opacity: 1; transform: translateY(0) scale(1); }
+    25% { opacity: 0; transform: translateY(-25px) scale(0.8); }
+    100% { opacity: 0; transform: translateY(-25px) scale(0.8); }
+}
+
+/* Section titles */
+.section-title {
+    font-size: 2.8rem; font-weight: 900; color: var(--primary);
+    letter-spacing: -0.5px; position: relative; display: inline-block;
+    text-shadow: 2px 2px 0 rgba(43,108,176,0.08);
+    background: linear-gradient(135deg, #1a365d, #2b6cb0);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+.section-title::after {
+    content: ''; display: block; width: 80px; height: 5px;
+    background: linear-gradient(90deg, var(--primary-light), #fbbf24);
+    border-radius: 4px; margin: 12px auto 0;
+}
+.text-center .section-title::after { margin-left: auto; margin-right: auto; }
+.section-sub { color: #888; font-size: 1.15rem; max-width: 600px; }
+
+/* Stat cards */
+.stat-card {
+    padding: 2rem 1.5rem; border-radius: 20px; text-align: center;
+    background: #fff; box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    border: 1px solid rgba(0,0,0,0.03);
+}
+.stat-card:hover { transform: translateY(-6px); box-shadow: 0 12px 40px rgba(43,108,176,0.1); }
+.stat-card .stat-icon {
+    width: 64px; height: 64px; border-radius: 18px;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 1rem; font-size: 1.6rem; color: #fff;
+}
+.stat-card h3 { font-size: 2.8rem; font-weight: 900; color: var(--primary); margin-bottom: 0; }
+.stat-card p { color: #888; font-size: 0.9rem; margin: 0; font-weight: 500; }
+
+/* Program cards */
+.program-card {
+    background: #fff; border-radius: 20px; padding: 2rem;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    border: 1px solid rgba(0,0,0,0.03); height: 100%;
+    text-align: center;
+}
+.program-card:hover { transform: translateY(-8px); box-shadow: 0 16px 50px rgba(43,108,176,0.1); }
+.program-card .prog-icon {
+    width: 72px; height: 72px; border-radius: 20px;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 1.2rem; font-size: 1.8rem; color: #fff;
+}
+.program-card h5 { font-weight: 800; color: var(--primary); margin-bottom: 0.5rem; font-size: 1.3rem; }
+.program-card p { color: #888; font-size: 0.9rem; margin-bottom: 0; }
+
+/* Campus blocks */
+.campus-block {
+    border-radius: 16px; overflow: hidden; transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    border: none; box-shadow: 0 8px 30px rgba(0,0,0,0.06);
+    position: relative; cursor: pointer;
+}
+.campus-block img { transition: all 0.6s; }
+.campus-block:hover { transform: translateY(-10px) scale(1.02); box-shadow: 0 20px 60px rgba(0,0,0,0.15); }
+.campus-block:hover img { transform: scale(1.1); }
+.campus-block .overlay {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    background: linear-gradient(transparent, rgba(0,0,0,0.6));
+    padding: 1rem; color: #fff; transform: translateY(10px);
+    transition: all 0.4s; opacity: 0;
+}
+.campus-block:hover .overlay { transform: translateY(0); opacity: 1; }
+
+/* Course card */
+.course-card {
+    background: #fff; border-radius: 12px; padding: 1.2rem;
+    box-shadow: 0 2px 15px rgba(0,0,0,0.04);
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    border-left: 4px solid var(--primary-light);
+    position: relative; overflow: hidden;
+}
+.course-card::before {
+    content: ''; position: absolute; top: 0; right: 0;
+    width: 60px; height: 60px; border-radius: 0 0 0 60px;
+    background: linear-gradient(135deg, transparent 50%, rgba(43,108,176,0.04) 50%);
+}
+.course-card:hover {
+    box-shadow: 0 12px 40px rgba(43,108,176,0.12);
+    transform: translateX(8px);
+    border-left-color: var(--teal);
+}
+
+/* Faculty list */
+.faculty-item {
+    padding: 0.9rem 0; border-bottom: 1px solid rgba(0,0,0,0.04);
+    display: flex; align-items: center; gap: 10px;
+    transition: all 0.3s; border-radius: 8px; padding-left: 8px;
+}
+.faculty-item:last-child { border-bottom: none; }
+.faculty-item:hover { background: rgba(43,108,176,0.04); padding-left: 16px; }
+.faculty-item .avatar {
+    width: 36px; height: 36px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 0.85rem; color: #fff; flex-shrink: 0;
+}
+
+/* Feature card */
+.feature-card {
+    padding: 2rem; border-radius: 20px; background: #fff;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    border: 1px solid rgba(0,0,0,0.03); height: 100%;
+}
+.feature-card:hover { transform: translateY(-8px); box-shadow: 0 16px 50px rgba(43,108,176,0.1); }
+.feature-icon-box {
+    width: 56px; height: 56px; border-radius: 16px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.5rem; color: #fff; transition: all 0.4s;
+}
+
+/* Testimonial */
+.testimonial-card {
+    background: #fff; border-radius: 20px; padding: 2rem;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+    border: 1px solid rgba(0,0,0,0.03); height: 100%;
+    position: relative;
+}
+.testimonial-card::before {
+    content: '\201C'; font-size: 5rem; position: absolute; top: 0.5rem; left: 1.5rem;
+    color: rgba(43,108,176,0.08); font-family: serif; line-height: 1;
+}
+
+/* Gallery hover */
+.gallery-item {
+    border-radius: 16px; overflow: hidden; position: relative; cursor: pointer;
+    transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.gallery-item img { transition: all 0.6s; }
+.gallery-item:hover { transform: scale(1.02); box-shadow: 0 16px 50px rgba(0,0,0,0.15); }
+.gallery-item:hover img { transform: scale(1.08); }
+.gallery-item .gallery-overlay {
+    position: absolute; inset: 0;
+    background: linear-gradient(transparent 50%, rgba(0,0,0,0.5));
+    opacity: 0; transition: all 0.4s;
+    display: flex; align-items: flex-end; padding: 1rem;
+}
+.gallery-item:hover .gallery-overlay { opacity: 1; }
+
+/* CTA */
+.cta-block {
+    background: linear-gradient(135deg, #0f1b33, #1a365d);
+    border-radius: 20px; color: white; overflow: hidden;
+    position: relative; transition: all 0.4s;
+}
+.cta-block::before {
+    content: ''; position: absolute; top: -50%; right: -50%;
+    width: 100%; height: 200%;
+    background: radial-gradient(circle, rgba(251,191,36,0.06), transparent 70%);
+    animation: orbFloat1 12s ease-in-out infinite;
+}
+.cta-block:hover { transform: translateY(-3px); box-shadow: 0 20px 60px rgba(26,54,93,0.3); }
+
+.bg-soft { background: #f8fafc; }
+
+@media (max-width: 768px) {
+    .hero-section { min-height: 70vh; }
+    .hero-section h1 { font-size: 2rem !important; }
+    .flip-text { min-width: 200px; }
+}
+</style>
+
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+
+    <div class="container position-relative z-1">
+        <div class="row align-items-center g-5">
+            <div class="col-lg-7 text-white fade-left">
+                <div class="d-flex align-items-center gap-2 mb-3 flex-wrap">
+                    <span class="badge px-3 py-2 rounded-pill" style="background: linear-gradient(135deg, #667eea, #764ba2); font-size: 0.8rem; letter-spacing: 0.5px;">Since 2001</span>
+                    <span class="badge px-3 py-2 rounded-pill" style="background: rgba(251,191,36,0.2); color: #fbbf24; font-size: 0.8rem;">NAAC Accredited</span>
+                    <span class="badge px-3 py-2 rounded-pill" style="background: rgba(43,108,176,0.2); color: #93c5fd; font-size: 0.8rem;">1000+ Students</span>
+                </div>
+                <h1 class="fw-black mb-3" style="font-size: 3.4rem; line-height: 1.1; letter-spacing: -1px;">
+                    Empowering<br>
+                    <span class="flip-text position-relative">
+                        <span>Minds</span>
+                        <span>Futures</span>
+                        <span>Careers</span>
+                        <span>Innovators</span>
+                    </span>
+                    <span style="color: rgba(255,255,255,0.4); font-weight: 300;"> since 2001</span>
+                </h1>
+                <p class="lead mb-4" style="color: rgba(255,255,255,0.6); font-size: 1.05rem; max-width: 540px; line-height: 1.7;">
+                    Mother Theresa Institutions — affiliated to Sri Venkateswara University, offering Degree, Intermediate, Engineering & Masters programs. Committed to quality education and holistic development.
+                </p>
+
+                <div class="d-flex flex-wrap gap-3">
+                    <a href="{% url 'college:about' %}" class="btn btn-lg fw-bold px-4 py-3" style="background: linear-gradient(135deg, #fbbf24, #f59e0b); color: #1a365d; border: none; border-radius: 12px;">Explore More <i class="bi bi-arrow-right ms-1"></i></a>
+                    <a href="{% url 'college:student_list' %}" class="btn btn-lg fw-bold px-4 py-3 text-white" style="background: rgba(255,255,255,0.08); border: 1.5px solid rgba(255,255,255,0.2); border-radius: 12px; backdrop-filter: blur(5px);"><i class="bi bi-people me-1"></i> Our Students</a>
+                </div>
+            </div>
+            <div class="col-lg-5 d-none d-lg-block fade-right">
+                <div class="hero-image-card" style="border-radius: 20px; overflow: hidden; box-shadow: 0 30px 80px rgba(0,0,0,0.4); transform: perspective(1000px) rotateY(-6deg) rotateX(2deg); transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1); border: 2px solid rgba(255,255,255,0.1);" onmouseover="this.style.transform='perspective(1000px) rotateY(0deg) rotateX(0deg) scale(1.02)'" onmouseout="this.style.transform='perspective(1000px) rotateY(-6deg) rotateX(2deg)'">
+                    <img src="{% static 'images/campus3.jpg' %}" alt="Degree Campus" class="w-100" style="height: 420px; object-fit: cover;">
+                </div>
+                <div class="d-flex justify-content-center gap-3 mt-3">
+                    <div style="color: rgba(255,255,255,0.4); font-size: 0.8rem;"><i class="bi bi-check-circle-fill" style="color: #22c55e;"></i> Affiliated to SVU</div>
+                    <div style="color: rgba(255,255,255,0.4); font-size: 0.8rem;"><i class="bi bi-check-circle-fill" style="color: #22c55e;"></i> UGC Recognized</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Stats Counter -->
+<section class="py-5" style="background: #fff;">
+    <div class="container">
+        <div class="row g-3">
+            <div class="col-6 col-lg-3 fade-up">
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: linear-gradient(135deg, #667eea, #764ba2);"><i class="bi bi-people-fill"></i></div>
+                    <h3><span class="counter" data-target="{{ stats.students }}">0</span>+</h3>
+                    <p>Students Enrolled</p>
+                </div>
+            </div>
+            <div class="col-6 col-lg-3 fade-up">
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: linear-gradient(135deg, #f093fb, #f5576c);"><i class="bi bi-book-fill"></i></div>
+                    <h3><span class="counter" data-target="{{ stats.courses }}">0</span>+</h3>
+                    <p>Programs Offered</p>
+                </div>
+            </div>
+            <div class="col-6 col-lg-3 fade-up">
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: linear-gradient(135deg, #4facfe, #00f2fe);"><i class="bi bi-person-badge-fill"></i></div>
+                    <h3><span class="counter" data-target="{{ stats.staff }}">0</span>+</h3>
+                    <p>Expert Faculty</p>
+                </div>
+            </div>
+            <div class="col-6 col-lg-3 fade-up">
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: linear-gradient(135deg, #43e97b, #38f9d7);"><i class="bi bi-building-fill"></i></div>
+                    <h3>4</h3>
+                    <p>Campus Blocks</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- What Sets Us Apart -->
+<section class="py-5 bg-soft">
+    <div class="container">
+        <div class="text-center mb-5 fade-up">
+            <h2 class="section-title">What Sets Us Apart</h2>
+            <p class="section-sub mx-auto">Discover what makes Mother Theresa Institutions the right choice for your future</p>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-6 col-lg-3 fade-up">
+                <div class="feature-card">
+                    <div class="feature-icon-box mb-3" style="background: linear-gradient(135deg, #667eea, #764ba2);"><i class="bi bi-mortarboard-fill"></i></div>
+                    <h5 class="fw-bold mb-2" style="font-size: 1.2rem;">Expert Faculty</h5>
+                    <p class="text-muted small mb-0">Highly qualified teachers dedicated to nurturing academic excellence and holistic development.</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3 fade-up">
+                <div class="feature-card">
+                    <div class="feature-icon-box mb-3" style="background: linear-gradient(135deg, #f093fb, #f5576c);"><i class="bi bi-building"></i></div>
+                    <h5 class="fw-bold mb-2" style="font-size: 1.2rem;">4 Campus Blocks</h5>
+                    <p class="text-muted small mb-0">Specialized blocks for Degree, Intermediate, Engineering, and Masters programs.</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3 fade-up">
+                <div class="feature-card">
+                    <div class="feature-icon-box mb-3" style="background: linear-gradient(135deg, #4facfe, #00f2fe);"><i class="bi bi-laptop"></i></div>
+                    <h5 class="fw-bold mb-2" style="font-size: 1.2rem;">Modern Labs</h5>
+                    <p class="text-muted small mb-0">State-of-the-art computer labs, science labs, and digital learning resources.</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3 fade-up">
+                <div class="feature-card">
+                    <div class="feature-icon-box mb-3" style="background: linear-gradient(135deg, #43e97b, #38f9d7);"><i class="bi bi-geo-alt-fill"></i></div>
+                    <h5 class="fw-bold mb-2" style="font-size: 1.2rem;">Prime Location</h5>
+                    <p class="text-muted small mb-0">Located on NH219, Gangavaram — easily accessible with scenic surroundings.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Programs -->
+<section class="py-5" style="background: #fff;">
+    <div class="container">
+        <div class="text-center mb-5 fade-up">
+            <h2 class="section-title">Our Programs</h2>
+            <p class="section-sub mx-auto">High-quality programs designed to build your career and shape your future</p>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-6 col-lg-3 fade-scale">
+                <div class="program-card">
+                    <div class="prog-icon" style="background: linear-gradient(135deg, #667eea, #764ba2);"><i class="bi bi-mortarboard"></i></div>
+                    <h5>Degree Block</h5>
+                    <p>B.Sc, B.Com, BCA, BBA — affiliated to SVU. Specializations in CS, Chemistry, Botany, Commerce & more.</p>
+                    <a href="{% url 'college:block_gallery' 'degree' %}" class="btn btn-sm fw-bold mt-2 px-3" style="background: linear-gradient(135deg, #667eea, #764ba2); color: #fff; border-radius: 50px;">View Gallery</a>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3 fade-scale">
+                <div class="program-card">
+                    <div class="prog-icon" style="background: linear-gradient(135deg, #f093fb, #f5576c);"><i class="bi bi-book"></i></div>
+                    <h5>Intermediate Block</h5>
+                    <p>Higher secondary education with MPC, BiPC, CEC, MEC streams. Strong foundation for university studies.</p>
+                    <a href="{% url 'college:block_gallery' 'intermediate' %}" class="btn btn-sm fw-bold mt-2 px-3" style="background: linear-gradient(135deg, #f093fb, #f5576c); color: #fff; border-radius: 50px;">View Gallery</a>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3 fade-scale">
+                <div class="program-card">
+                    <div class="prog-icon" style="background: linear-gradient(135deg, #4facfe, #00f2fe);"><i class="bi bi-cpu"></i></div>
+                    <h5>Engineering Block</h5>
+                    <p>B.Tech programs in CSE, ECE, ME, EEE. Industry-aligned curriculum with modern lab facilities.</p>
+                    <a href="{% url 'college:block_gallery' 'engineering' %}" class="btn btn-sm fw-bold mt-2 px-3" style="background: linear-gradient(135deg, #4facfe, #00f2fe); color: #fff; border-radius: 50px;">View Gallery</a>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3 fade-scale">
+                <div class="program-card">
+                    <div class="prog-icon" style="background: linear-gradient(135deg, #43e97b, #38f9d7);"><i class="bi bi-award"></i></div>
+                    <h5>Masters Block</h5>
+                    <p>M.Tech and M.A programs fostering research, innovation, and specialization for future leaders.</p>
+                    <a href="{% url 'college:block_gallery' 'masters' %}" class="btn btn-sm fw-bold mt-2 px-3" style="background: linear-gradient(135deg, #43e97b, #38f9d7); color: #fff; border-radius: 50px;">View Gallery</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Campus Blocks -->
+<section class="py-5 bg-soft">
+    <div class="container">
+        <div class="text-center mb-5 fade-up">
+            <h2 class="section-title">Explore Our Campus</h2>
+            <p class="section-sub mx-auto">Take a virtual tour through our campus blocks and facilities</p>
+        </div>
+        <div class="row g-4">
+            <div class="col-6 col-lg-3 fade-scale">
+                <a href="{% url 'college:block_gallery' 'degree' %}" class="text-decoration-none">
+                <div class="campus-block">
+                    <img src="{% static 'images/campus2.jpg' %}" alt="Degree Block" class="w-100" style="height: 200px; object-fit: cover;">
+                    <div class="p-3 text-center">
+                        <span class="badge bg-primary mb-1">Degree</span>
+                        <h5 class="fw-bold mb-0" style="color: var(--primary);">Degree Block</h5>
+                    </div>
+                    <div class="overlay">
+                        <small><i class="bi bi-arrow-right-circle"></i> View Gallery</small>
+                    </div>
+                </div>
+                </a>
+            </div>
+            <div class="col-6 col-lg-3 fade-scale">
+                <a href="{% url 'college:block_gallery' 'intermediate' %}" class="text-decoration-none">
+                <div class="campus-block">
+                    <img src="{% static 'images/campus10.jpg' %}" alt="Intermediate Block" class="w-100" style="height: 200px; object-fit: cover;">
+                    <div class="p-3 text-center">
+                        <span class="badge bg-warning text-dark mb-1">Intermediate</span>
+                        <h5 class="fw-bold mb-0" style="color: var(--primary);">Intermediate Block</h5>
+                    </div>
+                    <div class="overlay">
+                        <small><i class="bi bi-arrow-right-circle"></i> View Gallery</small>
+                    </div>
+                </div>
+                </a>
+            </div>
+            <div class="col-6 col-lg-3 fade-scale">
+                <a href="{% url 'college:block_gallery' 'engineering' %}" class="text-decoration-none">
+                <div class="campus-block">
+                    <img src="{% static 'images/campus7.jpg' %}" alt="Engineering Block" class="w-100" style="height: 200px; object-fit: cover;">
+                    <div class="p-3 text-center">
+                        <span class="badge bg-danger mb-1">Engineering</span>
+                        <h5 class="fw-bold mb-0" style="color: var(--primary);">Engineering Block</h5>
+                    </div>
+                    <div class="overlay">
+                        <small><i class="bi bi-arrow-right-circle"></i> View Gallery</small>
+                    </div>
+                </div>
+                </a>
+            </div>
+            <div class="col-6 col-lg-3 fade-scale">
+                <a href="{% url 'college:block_gallery' 'masters' %}" class="text-decoration-none">
+                <div class="campus-block">
+                    <img src="{% static 'images/campus8.jpg' %}" alt="Masters Block" class="w-100" style="height: 200px; object-fit: cover;">
+                    <div class="p-3 text-center">
+                        <span class="badge bg-success mb-1">Masters</span>
+                        <h5 class="fw-bold mb-0" style="color: var(--primary);">Masters Block</h5>
+                    </div>
+                    <div class="overlay">
+                        <small><i class="bi bi-arrow-right-circle"></i> View Gallery</small>
+                    </div>
+                </div>
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Courses & Faculty -->
+<section class="py-5" style="background: #fff;">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-lg-6 fade-left">
+                <div class="bg-white rounded-4 shadow-sm p-4 p-md-5 h-100" style="border-radius: 20px !important; border: 1px solid rgba(0,0,0,0.03);">
+                    <div class="d-flex align-items-center gap-2 mb-1">
+                        <span style="font-size: 1.5rem;">📚</span>
+                        <h4 class="fw-bold mb-0" style="color: var(--primary); font-size: 1.5rem;">Featured Courses</h4>
+                    </div>
+                    <p class="text-muted mb-4" style="font-size: 0.9rem;">Current programs at a glance</p>
+                    {% for course in top_courses %}
+                    <div class="course-card mb-2">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="fw-bold" style="color: var(--primary-light); font-size: 0.9rem;">{{ course.code|upper }}</span>
+                                <small class="text-muted ms-2">{{ course.title }}</small>
+                            </div>
+                            <i class="bi bi-chevron-right" style="color: var(--primary-light); opacity: 0.3;"></i>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted">No courses added yet</p>
+                    {% endfor %}
+                    <a href="{% url 'college:course_list' %}" class="btn mt-3 fw-bold text-white px-4" style="background: linear-gradient(135deg, var(--primary-light), var(--primary)); border-radius: 10px;">View All Courses <i class="bi bi-arrow-right ms-1"></i></a>
+                </div>
+            </div>
+            <div class="col-lg-6 fade-right">
+                <div class="bg-white rounded-4 shadow-sm p-4 p-md-5 h-100" style="border-radius: 20px !important; border: 1px solid rgba(0,0,0,0.03);">
+                    <div class="d-flex align-items-center gap-2 mb-1">
+                        <span style="font-size: 1.5rem;">👨‍🏫</span>
+                        <h4 class="fw-bold mb-0" style="color: var(--primary); font-size: 1.5rem;">Expert Faculty</h4>
+                    </div>
+                    <p class="text-muted mb-4" style="font-size: 0.9rem;">Dedicated teachers guiding our students</p>
+                    <div class="faculty-item">
+                        <div class="avatar" style="background: linear-gradient(135deg, #667eea, #764ba2);">Y</div>
+                        <div><strong style="font-size: 0.95rem;">Yuvaraj Sir</strong><br><small class="text-muted">Artificial Intelligence</small></div>
+                    </div>
+                    <div class="faculty-item">
+                        <div class="avatar" style="background: linear-gradient(135deg, #f093fb, #f5576c);">M</div>
+                        <div><strong style="font-size: 0.95rem;">Mayuri Mam</strong><br><small class="text-muted">Mathematics</small></div>
+                    </div>
+                    <div class="faculty-item">
+                        <div class="avatar" style="background: linear-gradient(135deg, #4facfe, #00f2fe);">D</div>
+                        <div><strong style="font-size: 0.95rem;">Dhanakoti Sir</strong><br><small class="text-muted">DCCN</small></div>
+                    </div>
+                    <div class="faculty-item">
+                        <div class="avatar" style="background: linear-gradient(135deg, #43e97b, #38f9d7);">S</div>
+                        <div><strong style="font-size: 0.95rem;">Srinivasulu Sir</strong><br><small class="text-muted">Operating Systems</small></div>
+                    </div>
+                    <div class="faculty-item">
+                        <div class="avatar" style="background: linear-gradient(135deg, #fa709a, #fee140);">K</div>
+                        <div><strong style="font-size: 0.95rem;">Krishnaveni Mam</strong><br><small class="text-muted">Python Programming</small></div>
+                    </div>
+                    <div class="faculty-item">
+                        <div class="avatar" style="background: linear-gradient(135deg, #a18cd1, #fbc2eb);">R</div>
+                        <div><strong style="font-size: 0.95rem;">Rajeshwari Mam</strong><br><small class="text-muted">Computer Organization</small></div>
+                    </div>
+                    <a href="{% url 'college:staff_list' %}" class="btn mt-3 fw-bold text-white px-4" style="background: linear-gradient(135deg, var(--primary-light), var(--primary)); border-radius: 10px;">View All Faculty <i class="bi bi-arrow-right ms-1"></i></a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- College Images -->
+<section class="py-5 bg-soft">
+    <div class="container">
+        <div class="text-center mb-5 fade-up">
+            <h2 class="section-title">College Images</h2>
+            <p class="section-sub mx-auto">A glimpse of our campus, classrooms, library, and facilities</p>
+        </div>
+
+        <div class="mb-5 fade-up">
+            <h4 class="fw-bold mb-3" style="color: var(--primary); font-size: 1.6rem;"><i class="bi bi-building me-2"></i>Campus Views</h4>
+            <div class="row g-3">
+                <div class="col-md-4 fade-scale">
+                    <div class="gallery-item">
+                        <img src="{% static 'images/campus1.jpg' %}" alt="College Building" class="w-100" style="height: 220px; object-fit: cover;">
+                        <div class="gallery-overlay"><span class="fw-bold"><i class="bi bi-camera me-1"></i> College Building</span></div>
+                    </div>
+                </div>
+                <div class="col-md-4 fade-scale">
+                    <div class="gallery-item">
+                        <img src="{% static 'images/campus2.jpg' %}" alt="Campus View" class="w-100" style="height: 220px; object-fit: cover;">
+                        <div class="gallery-overlay"><span class="fw-bold"><i class="bi bi-camera me-1"></i> Campus Front</span></div>
+                    </div>
+                </div>
+                <div class="col-md-4 fade-scale">
+                    <div class="gallery-item">
+                        <img src="{% static 'images/campus3.jpg' %}" alt="Campus Building" class="w-100" style="height: 220px; object-fit: cover;">
+                        <div class="gallery-overlay"><span class="fw-bold"><i class="bi bi-camera me-1"></i> Campus Building</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mb-5 fade-up">
+            <h4 class="fw-bold mb-3" style="color: var(--primary); font-size: 1.6rem;"><i class="bi bi-easel me-2"></i>Classrooms</h4>
+            <div class="row g-3">
+                <div class="col-md-4 fade-scale">
+                    <div class="gallery-item">
+                        <img src="{% static 'images/campus4.jpg' %}" alt="Classroom" class="w-100" style="height: 200px; object-fit: cover;">
+                        <div class="gallery-overlay"><span class="fw-bold"><i class="bi bi-camera me-1"></i> Smart Classroom</span></div>
+                    </div>
+                </div>
+                <div class="col-md-4 fade-scale">
+                    <div class="gallery-item">
+                        <img src="{% static 'images/campus5.jpg' %}" alt="Classroom Interior" class="w-100" style="height: 200px; object-fit: cover;">
+                        <div class="gallery-overlay"><span class="fw-bold"><i class="bi bi-camera me-1"></i> Classroom Interior</span></div>
+                    </div>
+                </div>
+                <div class="col-md-4 fade-scale">
+                    <div class="gallery-item">
+                        <img src="{% static 'images/campus6.jpg' %}" alt="Classroom View" class="w-100" style="height: 200px; object-fit: cover;">
+                        <div class="gallery-overlay"><span class="fw-bold"><i class="bi bi-camera me-1"></i> Classroom View</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="fade-up">
+            <h4 class="fw-bold mb-3" style="color: var(--primary); font-size: 1.6rem;"><i class="bi bi-journal-bookmark-fill me-2"></i>Library & Labs</h4>
+            <div class="row g-3">
+                <div class="col-md-6 fade-scale">
+                    <div class="gallery-item h-100">
+                        <img src="{% static 'images/library1.jpg' %}" alt="Library" class="w-100" style="height: 260px; object-fit: cover;">
+                        <div class="gallery-overlay"><span class="fw-bold"><i class="bi bi-camera me-1"></i> College Library</span></div>
+                    </div>
+                </div>
+                <div class="col-md-3 fade-scale">
+                    <div class="gallery-item h-100">
+                        <img src="{% static 'images/campus11.jpg' %}" alt="Computer Lab" class="w-100" style="height: 260px; object-fit: cover;">
+                        <div class="gallery-overlay"><span class="fw-bold"><i class="bi bi-camera me-1"></i> Computer Lab</span></div>
+                    </div>
+                </div>
+                <div class="col-md-3 fade-scale">
+                    <div class="gallery-item h-100">
+                        <img src="{% static 'images/campus12.jpg' %}" alt="Lab" class="w-100" style="height: 260px; object-fit: cover;">
+                        <div class="gallery-overlay"><span class="fw-bold"><i class="bi bi-camera me-1"></i> Science Lab</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center mt-4 fade-up">
+            <a href="{% url 'college:block_gallery' 'degree' %}" class="btn btn-lg fw-bold px-4" style="background: linear-gradient(135deg, var(--primary-light), var(--primary)); color: #fff; border-radius: 12px;">View Full Degree Gallery <i class="bi bi-arrow-right ms-1"></i></a>
+        </div>
+    </div>
+</section>
+
+<!-- Testimonials -->
+<section class="py-5" style="background: #fff;">
+    <div class="container">
+        <div class="text-center mb-5 fade-up">
+            <h2 class="section-title">What Our Students Say</h2>
+            <p class="section-sub mx-auto">Hear from our students about their experience at Mother Theresa Institutions</p>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-6 col-lg-4 fade-up">
+                <div class="testimonial-card">
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 50px; height: 50px; background: linear-gradient(135deg, #667eea, #764ba2); color: #fff; font-weight: 800; font-size: 1.2rem; flex-shrink: 0;">S</div>
+                        <div>
+                            <strong style="color: var(--primary);">Sravani Reddy</strong><br>
+                            <small class="text-muted">B.Sc Computer Science</small>
+                        </div>
+                    </div>
+                    <p class="text-muted small mb-0" style="line-height: 1.7;">"The faculty here are incredibly supportive. The smart classrooms and computer labs have helped me gain practical knowledge. Proud to be a student here!"</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4 fade-up">
+                <div class="testimonial-card">
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 50px; height: 50px; background: linear-gradient(135deg, #f093fb, #f5576c); color: #fff; font-weight: 800; font-size: 1.2rem; flex-shrink: 0;">R</div>
+                        <div>
+                            <strong style="color: var(--primary);">Ravi Kumar</strong><br>
+                            <small class="text-muted">BCA</small>
+                        </div>
+                    </div>
+                    <p class="text-muted small mb-0" style="line-height: 1.7;">"Mother Theresa Degree College has given me the best learning experience. The library is well-stocked and the campus environment is perfect for studies."</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4 fade-up">
+                <div class="testimonial-card">
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 50px; height: 50px; background: linear-gradient(135deg, #4facfe, #00f2fe); color: #fff; font-weight: 800; font-size: 1.2rem; flex-shrink: 0;">P</div>
+                        <div>
+                            <strong style="color: var(--primary);">Priya Sharma</strong><br>
+                            <small class="text-muted">B.Com</small>
+                        </div>
+                    </div>
+                    <p class="text-muted small mb-0" style="line-height: 1.7;">"The college provides excellent placement training and career guidance. I'm grateful for the opportunities and the holistic education I received here."</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA -->
+<section class="py-5 bg-soft">
+    <div class="container fade-up">
+        <a href="{% if location %}https://www.google.com/maps/search/?api=1&query={{ location.name|urlencode }}{% else %}{% url 'college:location' %}{% endif %}" target="_blank" class="text-decoration-none">
+            <div class="cta-block p-5 p-md-6 shadow-lg">
+                <div class="row align-items-center position-relative z-1">
+                    <div class="col-md-8">
+                        <h3 class="fw-bold mb-2" style="font-size: 1.8rem;">📍 Visit Our Campus</h3>
+                        <p class="mb-0 opacity-75" style="font-size: 1.05rem;">
+                            {% if location %}
+                                <strong>{{ location.name }}</strong><br>{{ location.address }}
+                            {% else %}
+                                Discover our campus facilities and infrastructure
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                        <span class="btn btn-lg fw-bold px-4" style="background: #fbbf24; color: #1a365d; border-radius: 12px;">Open in Google Maps <i class="bi bi-box-arrow-up-right ms-1"></i></span>
+                    </div>
+                </div>
+            </div>
+        </a>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const counterObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const el = entry.target;
+                const target = parseInt(el.dataset.target);
+                if (isNaN(target)) return;
+                let current = 0;
+                const step = Math.ceil(target / 40);
+                const timer = setInterval(() => {
+                    current += step;
+                    if (current >= target) {
+                        el.textContent = target;
+                        clearInterval(timer);
+                    } else {
+                        el.textContent = current;
+                    }
+                }, 40);
+                counterObserver.unobserve(el);
+            }
+        });
+    }, { threshold: 0.5 });
+    document.querySelectorAll('.counter').forEach(el => counterObserver.observe(el));
+});
+</script>
+{% endblock %}

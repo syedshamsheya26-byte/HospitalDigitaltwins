@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h1 class="card-title">Staff Attendance</h1>
+                <p class="card-text">Most recent staff attendance records</p>
+                <table class="table table-bordered table-hover mt-3">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Staff</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for attendance in staff_attendance %}
+                            <tr>
+                                <td>{{ attendance.date }}</td>
+                                <td>{{ attendance.staff.name }}</td>
+                                <td>{{ attendance.status }}</td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="3">No attendance records found.</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

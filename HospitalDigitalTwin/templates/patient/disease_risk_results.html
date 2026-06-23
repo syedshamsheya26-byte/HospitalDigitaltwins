@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Disease Risk Results{% endblock %}
+{% block content %}
+<div class="container-fluid">
+    <h2 class="mb-4"><i class="bi bi-shield-exclamation text-success"></i> Disease Risk Assessment Results</h2>
+
+    {% if risks %}
+    <div class="table-responsive">
+        <table class="table table-hover shadow">
+            <thead class="table-success">
+                <tr>
+                    <th>Date</th>
+                    <th>Disease</th>
+                    <th>Risk Level</th>
+                    <th>Score</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in risks %}
+                <tr>
+                    <td>{{ r.date }}</td>
+                    <td>{{ r.disease|title }}</td>
+                    <td><span class="badge bg-{% if r.level == 'high' %}danger{% elif r.level == 'medium' %}warning{% else %}success{% endif %}">{{ r.level|title }}</span></td>
+                    <td>{{ r.score }}%</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="alert alert-info">
+        <i class="bi bi-info-circle"></i> No risk assessments found. 
+        <a href="{% url 'disease_risk:risk_assessment' %}" class="alert-link">Take a risk assessment now</a>.
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

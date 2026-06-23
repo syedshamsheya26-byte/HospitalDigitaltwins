@@ -1,0 +1,209 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Prediction Dashboard - Hospital Digital Twin{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2><i class="bi bi-robot"></i> AI Prediction Engine</h2>
+        <p class="text-muted mb-0">Leverage machine learning to forecast bed occupancy, medicine shortages, patient loads, and health risks</p>
+    </div>
+    <a href="{% url 'dashboard:home' %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i> Back to Dashboard</a>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card border-primary border-start border-4 shadow-sm">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="text-muted">Bed Occupancy Predictions</h6>
+                        <h3 class="mb-0">{{ bed_predictions|length }}</h3>
+                    </div>
+                    <i class="bi bi-bed text-primary" style="font-size: 2rem;"></i>
+                </div>
+                <small class="text-muted">Next 30 days forecast</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-danger border-start border-4 shadow-sm">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="text-muted">Medicine Shortage Alerts</h6>
+                        <h3 class="mb-0 text-danger">{{ medicine_predictions|length }}</h3>
+                    </div>
+                    <i class="bi bi-capsule text-danger" style="font-size: 2rem;"></i>
+                </div>
+                <small class="text-muted">At-risk medicines</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-info border-start border-4 shadow-sm">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="text-muted">Patient Load Forecasts</h6>
+                        <h3 class="mb-0 text-info">{{ patient_load_predictions|length }}</h3>
+                    </div>
+                    <i class="bi bi-people text-info" style="font-size: 2rem;"></i>
+                </div>
+                <small class="text-muted">Department-wise projections</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-warning border-start border-4 shadow-sm">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="text-muted">Risk Predictions</h6>
+                        <h3 class="mb-0 text-warning">{{ recent_risk_predictions|length }}</h3>
+                    </div>
+                    <i class="bi bi-shield-exclamation text-warning" style="font-size: 2rem;"></i>
+                </div>
+                <small class="text-muted">Patient risk assessments</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-6">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-bed"></i> Bed Occupancy Predictions</h5>
+                <a href="{% url 'predictions:predict_bed_occupancy' %}" class="btn btn-sm btn-outline-primary">View All</a>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Predicted Date</th>
+                                <th>Predicted Occupancy</th>
+                                <th>Confidence</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for pred in bed_predictions|slice:":10" %}
+                            <tr>
+                                <td>{{ pred.predicted_date|date:"d M Y" }}</td>
+                                <td>{{ pred.predicted_value|floatformat:0 }}</td>
+                                <td><span class="badge bg-{% if pred.confidence_score > 80 %}success{% elif pred.confidence_score > 60 %}warning{% else %}danger{% endif %}">{{ pred.confidence_score }}%</span></td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="3" class="text-center text-muted py-3">No bed occupancy predictions yet</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-capsule"></i> Medicine Shortage Predictions</h5>
+                <a href="{% url 'predictions:predict_medicine_shortage' %}" class="btn btn-sm btn-outline-primary">View All</a>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Value</th>
+                                <th>Confidence</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for pred in medicine_predictions|slice:":10" %}
+                            <tr>
+                                <td>{{ pred.predicted_date|date:"d M Y" }}</td>
+                                <td>{{ pred.predicted_value|floatformat:0 }}</td>
+                                <td><span class="badge bg-{% if pred.confidence_score > 80 %}success{% elif pred.confidence_score > 60 %}warning{% else %}danger{% endif %}">{{ pred.confidence_score }}%</span></td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="3" class="text-center text-muted py-3">No medicine shortage predictions yet</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-12">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-shield-exclamation"></i> Recent Risk Predictions</h5>
+                <a href="{% url 'predictions:risk_prediction_list' %}" class="btn btn-sm btn-outline-primary">View All</a>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Patient Name</th>
+                                <th>Risk Level</th>
+                                <th>Risk Score</th>
+                                <th>Predicted Condition</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for risk in recent_risk_predictions|slice:":5" %}
+                            <tr>
+                                <td>{{ risk.patient_name }}</td>
+                                <td><span class="badge bg-{% if risk.risk_level == 'critical' %}dark{% elif risk.risk_level == 'high' %}danger{% elif risk.risk_level == 'medium' %}warning{% else %}success{% endif %}">{{ risk.risk_level|title }}</span></td>
+                                <td>{{ risk.risk_score|floatformat:1 }}%</td>
+                                <td>{{ risk.predicted_condition }}</td>
+                                <td>{{ risk.created_at|date:"d M Y" }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="5" class="text-center text-muted py-3">No risk predictions yet</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-12">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="bi bi-lightning"></i> Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex flex-wrap gap-2">
+                    <a href="{% url 'predictions:predict_bed_occupancy' %}" class="btn btn-primary">
+                        <i class="bi bi-bed"></i> Predict Bed Occupancy
+                    </a>
+                    <a href="{% url 'predictions:predict_medicine_shortage' %}" class="btn btn-danger">
+                        <i class="bi bi-capsule"></i> Analyze Medicine Shortage
+                    </a>
+                    <a href="{% url 'predictions:predict_patient_load' %}" class="btn btn-info text-white">
+                        <i class="bi bi-people"></i> Forecast Patient Load
+                    </a>
+                    <a href="{% url 'predictions:risk_prediction' %}" class="btn btn-warning text-white">
+                        <i class="bi bi-shield-exclamation"></i> Assess Patient Risk
+                    </a>
+                    <a href="{% url 'predictions:risk_prediction_list' %}" class="btn btn-secondary">
+                        <i class="bi bi-list-check"></i> View Risk History
+                    </a>
+                    <a href="{% url 'predictions:model_performance' %}" class="btn btn-dark">
+                        <i class="bi bi-graph-up"></i> Model Performance
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

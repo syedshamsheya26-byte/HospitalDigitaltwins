@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Stock Management - Hospital Digital Twin{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-boxes"></i> Stock Levels</h2>
+    <div>
+        <a href="{% url 'dashboard:home' %}" class="btn btn-outline-secondary btn-sm me-2"><i class="bi bi-arrow-left"></i> Back to Dashboard</a>
+        <a href="{% url 'inventory:inventory_create' %}" class="btn btn-success"><i class="bi bi-plus-circle"></i> Add Stock</a>
+    </div>
+</div>
+
+{% if alerts %}
+<div class="alert alert-warning alert-dismissible fade show" role="alert">
+    <i class="bi bi-exclamation-triangle"></i>
+    <strong>{{ alerts|length }} active alert{{ alerts|length|pluralize }}.</strong>
+    <a href="{% url 'inventory:low_stock_alerts' %}" class="alert-link">View all alerts</a>
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{% endif %}
+
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-10">
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" name="low_stock" id="lowStockCheck" value="1" {% if filter_low_stock %}checked{% endif %} onchange="this.form.submit()">
+                    <label class="form-check-label" for="lowStockCheck">Show only low stock items (quantity &le; 10)</label>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-outline-primary w-100"><i class="bi bi-funnel"></i> Filter</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Medicine</th>
+                        <th>Batch</th>
+                        <th>Quantity</th>
+                        <th>Unit</th>
+                        <th>Selling Price</th>
+                        <th>Expiry Date</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in items %}
+                    <tr class="{% if item.is_expired %}table-danger{% elif item.is_low_stock %}table-warning{% endif %}">
+                        <td><a href="{% url 'inventory:medicine_detail' item.medicine.pk %}">{{ item.medicine.name }}</a></td>
+                        <td>{{ item.batch_number }}</td>
+                        <td>{{ item.quantity }}</td>
+                        <td>{{ item.unit }}</td>
+                        <td><strong>₹{{ item.selling_price }}</strong></td>
+                        <td>{{ item.expiry_date|date:"Y-m-d" }}</td>
+                        <td>
+                            {% if item.is_expired %}
+                            <span class="badge bg-danger"><i class="bi bi-x-circle"></i> Expired</span>
+                            {% elif item.is_low_stock %}
+                            <span class="badge bg-warning text-dark"><i class="bi bi-exclamation-triangle"></i> Low Stock</span>
+                            {% else %}
+                            <span class="badge bg-success"><i class="bi bi-check-circle"></i> In Stock</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{% url 'inventory:inventory_update' item.pk %}" class="btn btn-sm btn-warning"><i class="bi bi-pencil"></i></a>
+                            <a href="{% url 'inventory:inventory_delete' item.pk %}" class="btn btn-sm btn-danger"><i class="bi bi-trash"></i></a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="text-center text-muted py-4">
+                            <i class="bi bi-inbox" style="font-size: 2rem;"></i>
+                            <p class="mt-2 mb-0">No stock items found.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

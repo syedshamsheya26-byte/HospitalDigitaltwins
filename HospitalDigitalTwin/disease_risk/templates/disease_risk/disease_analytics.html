@@ -1,0 +1,175 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Disease Risk Analytics - Hospital Digital Twin{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2><i class="bi bi-graph-up"></i> Disease Risk Analytics</h2>
+        <p class="text-muted mb-0">Analytics and statistics for disease risk predictions</p>
+    </div>
+    <a href="{% url 'dashboard:home' %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i> Back to Dashboard</a>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card border-primary border-start border-4 shadow-sm">
+            <div class="card-body">
+                <h6 class="text-muted">Total Predictions</h6>
+                <h3 class="mb-0 text-primary">{{ total_predictions }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-success border-start border-4 shadow-sm">
+            <div class="card-body">
+                <h6 class="text-muted">Low Risk</h6>
+                <h3 class="mb-0 text-success">{{ low_risk_count }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-warning border-start border-4 shadow-sm">
+            <div class="card-body">
+                <h6 class="text-muted">Medium Risk</h6>
+                <h3 class="mb-0 text-warning">{{ medium_risk_count }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-danger border-start border-4 shadow-sm">
+            <div class="card-body">
+                <h6 class="text-muted">High Risk</h6>
+                <h3 class="mb-0 text-danger">{{ high_risk_count }}</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-md-8">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="bi bi-bar-chart"></i> Disease-wise Prediction Statistics</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Disease</th>
+                                <th>Total</th>
+                                <th>Low Risk</th>
+                                <th>Medium Risk</th>
+                                <th>High Risk</th>
+                                <th>Avg Risk Score</th>
+                                <th>Avg Confidence</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for stat in disease_stats %}
+                            <tr>
+                                <td><strong>{{ stat.disease_type|title }}</strong></td>
+                                <td>{{ stat.total }}</td>
+                                <td class="text-success">{{ stat.low_risk }}</td>
+                                <td class="text-warning">{{ stat.medium_risk }}</td>
+                                <td class="text-danger">{{ stat.high_risk }}</td>
+                                <td>{{ stat.avg_risk_score|floatformat:1 }}%</td>
+                                <td>{{ stat.avg_confidence|floatformat:1 }}%</td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="7" class="text-center text-muted py-4">No data available</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="bi bi-pie-chart"></i> Risk Distribution</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="riskDistributionChart" height="250"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mt-2">
+    <div class="col-md-12">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="bi bi-graph-up"></i> Monthly Prediction Trends</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="monthlyTrendChart" height="120"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const riskCtx = document.getElementById('riskDistributionChart');
+    if (riskCtx) {
+        new Chart(riskCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Low Risk', 'Medium Risk', 'High Risk'],
+                datasets: [{
+                    data: [{{ low_risk_count }}, {{ medium_risk_count }}, {{ high_risk_count }}],
+                    backgroundColor: ['#10b981', '#f59e0b', '#ef4444'],
+                    borderWidth: 2,
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { position: 'bottom' } }
+            }
+        });
+    }
+
+    const trendCtx = document.getElementById('monthlyTrendChart');
+    if (trendCtx) {
+        const monthlyLabels = [{% for m in monthly_stats %}"{{ m.year }}-{{ m.month }}",{% endfor %}];
+        const monthlyTotals = [{% for m in monthly_stats %}{{ m.total }},{% endfor %}];
+        const monthlyHigh = [{% for m in monthly_stats %}{{ m.high_risk }},{% endfor %}];
+
+        if (monthlyLabels.length > 0) {
+            new Chart(trendCtx, {
+                type: 'line',
+                data: {
+                    labels: monthlyLabels,
+                    datasets: [{
+                        label: 'Total Predictions',
+                        data: monthlyTotals,
+                        borderColor: '#2563eb',
+                        backgroundColor: 'rgba(37,99,235,0.1)',
+                        fill: true,
+                        tension: 0.4,
+                    }, {
+                        label: 'High Risk',
+                        data: monthlyHigh,
+                        borderColor: '#ef4444',
+                        backgroundColor: 'rgba(239,68,68,0.1)',
+                        fill: true,
+                        tension: 0.4,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { position: 'bottom' } },
+                    scales: { y: { beginAtZero: true } }
+                }
+            });
+        }
+    }
+});
+</script>
+{% endblock %}

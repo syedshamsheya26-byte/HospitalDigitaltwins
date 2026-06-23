@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Typing Speed Tester — Module 6.1 Mini Project</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body { background: #0f172a; min-height: 100vh; display: flex; align-items: center; font-family: 'Segoe UI', system-ui, sans-serif; }
+    .card-typing { max-width: 700px; margin: 0 auto; border: none; border-radius: 24px; background: #1e293b; box-shadow: 0 30px 80px rgba(0,0,0,0.5); }
+    .text-display { background: #0f172a; border-radius: 16px; padding: 24px; font-size: 1.4rem; line-height: 2; letter-spacing: 0.5px; color: #94a3b8; min-height: 120px; user-select: none; }
+    .text-display .char { transition: all 0.1s; }
+    .text-display .char.correct { color: #22c55e; }
+    .text-display .char.incorrect { color: #ef4444; background: rgba(239,68,68,0.2); border-radius: 4px; }
+    .text-display .char.current { color: #fff; border-bottom: 3px solid #6366f1; }
+    .hidden-input { position: absolute; opacity: 0; height: 0; width: 0; }
+    .stat-box { background: #0f172a; border-radius: 16px; padding: 16px; text-align: center; }
+    .stat-box .value { font-size: 2rem; font-weight: 800; color: #fff; }
+    .stat-box .label { font-size: 0.8rem; color: #64748b; text-transform: uppercase; letter-spacing: 1px; }
+    .timer-ring { width: 100px; height: 100px; border-radius: 50%; border: 6px solid #1e293b; display: flex; align-items: center; justify-content: center; margin: 0 auto; position: relative; }
+    .timer-ring svg { position: absolute; transform: rotate(-90deg); }
+    .timer-ring .time { font-size: 2rem; font-weight: 800; color: #fff; z-index: 1; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="card card-typing p-4">
+      <div class="text-center mb-4">
+        <h2 class="fw-bold text-white mb-1">⌨ Typing Speed Test</h2>
+        <p class="text-muted">Type the words below as fast as you can</p>
+      </div>
+
+      <!-- Timer & Stats -->
+      <div class="row g-3 mb-4">
+        <div class="col-4">
+          <div class="stat-box">
+            <div class="value" id="wpm">0</div>
+            <div class="label">WPM</div>
+          </div>
+        </div>
+        <div class="col-4">
+          <div class="stat-box">
+            <div class="value" id="accuracy">100%</div>
+            <div class="label">Accuracy</div>
+          </div>
+        </div>
+        <div class="col-4">
+          <div class="stat-box">
+            <div class="value" id="timer">60</div>
+            <div class="label">Seconds</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Text Display -->
+      <div class="text-display mb-4" id="text-display"></div>
+
+      <!-- Hidden Input (captures keydown) -->
+      <input type="text" class="hidden-input" id="hidden-input" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+
+      <!-- Controls -->
+      <div class="text-center">
+        <button class="btn btn-lg btn-primary px-5" id="start-btn">Start Test</button>
+        <button class="btn btn-lg btn-outline-secondary px-5 d-none" id="reset-btn">Try Again</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ── Sample Texts ─────────────────────────────────────────────────────
+    const texts = [
+      "The quick brown fox jumps over the lazy dog near the bank of the river.",
+      "JavaScript is the programming language of the web and runs in every browser.",
+      "Practice makes perfect and consistency is the key to mastering any skill.",
+      "Modern web applications use AJAX to fetch data without reloading the page.",
+      "The event loop allows JavaScript to handle asynchronous operations on a single thread.",
+      "Array methods like map filter and reduce make data transformation clean and readable.",
+    ];
+
+    // ── State ────────────────────────────────────────────────────────────
+    let words = [];
+    let currentIndex = 0;
+    let correctChars = 0;
+    let totalTyped = 0;
+    let timeLeft = 60;
+    let timerId = null;
+    let isRunning = false;
+    let isFinished = false;
+
+    const display = document.getElementById("text-display");
+    const hiddenInput = document.getElementById("hidden-input");
+    const startBtn = document.getElementById("start-btn");
+    const resetBtn = document.getElementById("reset-btn");
+    const wpmEl = document.getElementById("wpm");
+    const accuracyEl = document.getElementById("accuracy");
+    const timerEl = document.getElementById("timer");
+
+    // ── Render Text (every char + space gets its own span) ──────────────
+    function renderText() {
+      display.innerHTML = words
+        .join(" ")
+        .split("")
+        .map((char) => `<span class="char">${char}</span>`)
+        .join("");
+      highlightCurrent();
+    }
+
+    function highlightCurrent() {
+      document.querySelectorAll(".char").forEach((el, i) => {
+        el.classList.remove("current");
+        if (i === currentIndex) el.classList.add("current");
+      });
+    }
+
+    // ── Start / Reset ────────────────────────────────────────────────────
+    function startTest() {
+      const text = texts[Math.floor(Math.random() * texts.length)];
+      words = text.split(" ");
+      currentIndex = 0;
+      correctChars = 0;
+      totalTyped = 0;
+      timeLeft = 60;
+      isRunning = true;
+      isFinished = false;
+
+      renderText();
+      timerEl.textContent = "60";
+      wpmEl.textContent = "0";
+      accuracyEl.textContent = "100%";
+      startBtn.classList.add("d-none");
+      resetBtn.classList.remove("d-none");
+      hiddenInput.focus();
+
+      if (timerId) clearInterval(timerId);
+      timerId = setInterval(() => {
+        timeLeft--;
+        timerEl.textContent = timeLeft;
+        if (timeLeft <= 0) endTest();
+      }, 1000);
+    }
+
+    function endTest() {
+      isRunning = false;
+      isFinished = true;
+      if (timerId) clearInterval(timerId);
+      hiddenInput.blur();
+      calculateResults();
+    }
+
+    function calculateResults() {
+      const elapsed = 60 - timeLeft;
+      const wordsTyped = correctChars / 5;
+      const wpm = elapsed > 0 ? Math.round(wordsTyped / (elapsed / 60)) : 0;
+      const acc = totalTyped > 0 ? Math.round((correctChars / totalTyped) * 100) : 100;
+      wpmEl.textContent = wpm;
+      accuracyEl.textContent = `${acc}%`;
+    }
+
+    function resetTest() {
+      if (timerId) clearInterval(timerId);
+      isRunning = false;
+      isFinished = false;
+      currentIndex = 0;
+      correctChars = 0;
+      totalTyped = 0;
+      timeLeft = 60;
+      timerEl.textContent = "60";
+      wpmEl.textContent = "0";
+      accuracyEl.textContent = "100%";
+      display.innerHTML = `<span class="text-muted">Press "Start Test" to begin.</span>`;
+      startBtn.classList.remove("d-none");
+      resetBtn.classList.add("d-none");
+    }
+
+    // ── Keydown Handler (§1.10 — keyboard events) ────────────────────────
+    document.addEventListener("keydown", (e) => {
+      if (!isRunning || isFinished) return;
+      if (e.ctrlKey || e.altKey || e.metaKey) return;
+
+      const chars = document.querySelectorAll(".char");
+      if (currentIndex >= chars.length) {
+        endTest();
+        return;
+      }
+
+      const expected = chars[currentIndex].textContent;
+      const pressed = e.key;
+
+      if (pressed === "Backspace") {
+        if (currentIndex > 0) {
+          currentIndex--;
+          chars[currentIndex].classList.remove("correct", "incorrect");
+          highlightCurrent();
+        }
+        e.preventDefault();
+        return;
+      }
+
+      if (pressed.length !== 1) return;
+      e.preventDefault();
+
+      totalTyped++;
+      if (pressed === expected) {
+        correctChars++;
+        chars[currentIndex].classList.add("correct");
+      } else {
+        chars[currentIndex].classList.add("incorrect");
+      }
+
+      currentIndex++;
+      highlightCurrent();
+
+      // Real-time stats
+      calculateResults();
+    });
+
+    // ── Button Events ────────────────────────────────────────────────────
+    startBtn.addEventListener("click", startTest);
+    resetBtn.addEventListener("click", resetTest);
+  </script>
+</body>
+</html>

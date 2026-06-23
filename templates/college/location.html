@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h1 class="card-title">College Location</h1>
+                {% if location %}
+                    <div class="mb-3">
+                        <h2 class="h4 mb-2">{{ location.name }}</h2>
+                        <p class="mb-1">{{ location.address }}</p>
+                        <p class="text-muted mb-0">Click below to open the college directly in Google Maps.</p>
+                    </div>
+                    <div class="ratio ratio-4x3 mt-3">
+                        <iframe
+                            src="https://www.google.com/maps?q={{ location.latitude }},{{ location.longitude }}&t=k&output=embed"
+                            style="border:0;"
+                            allowfullscreen=""
+                            loading="lazy"
+                            referrerpolicy="no-referrer-when-downgrade">
+                        </iframe>
+                    </div>
+                    <div class="mt-3 d-flex gap-2 flex-wrap">
+                        <a class="btn btn-primary" target="_blank" href="https://www.google.com/maps/dir/?api=1&destination={{ location.latitude }},{{ location.longitude }}&travelmode=driving">Open Directions</a>
+                        <a class="btn btn-light" target="_blank" href="https://www.google.com/maps/search/?api=1&query={{ location.latitude }},{{ location.longitude }}">Open Location</a>
+                        <a class="btn btn-secondary" href="{% url 'college:edit_location' %}">Edit Location</a>
+                    </div>
+                {% else %}
+                    <p>No location data has been set yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

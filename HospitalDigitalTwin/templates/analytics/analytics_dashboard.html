@@ -1,0 +1,218 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Analytics Dashboard - Hospital Digital Twin{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-graph-up"></i> Hospital Analytics</h2>
+    <a href="{% url 'dashboard:home' %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i> Back to Dashboard</a>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card border-primary border-start border-4 shadow-sm">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="text-muted">Daily Admissions</h6>
+                        <h3 class="mb-0">{{ daily_stats.0.total_admissions|default:"-" }}</h3>
+                    </div>
+                    <i class="bi bi-person-plus text-primary" style="font-size: 2rem;"></i>
+                </div>
+                <small class="text-muted">Today</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-success border-start border-4 shadow-sm">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="text-muted">Monthly Admissions</h6>
+                        <h3 class="mb-0 text-success">{{ monthly_stats|length }}</h3>
+                    </div>
+                    <i class="bi bi-calendar-check text-success" style="font-size: 2rem;"></i>
+                </div>
+                <small class="text-muted">Current Month</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-info border-start border-4 shadow-sm">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="text-muted">Bed Utilization</h6>
+                        <h3 class="mb-0 text-info">{{ bed_utilization.0.utilization_rate|floatformat:1|default:"-" }}%</h3>
+                    </div>
+                    <i class="bi bi-bed text-info" style="font-size: 2rem;"></i>
+                </div>
+                <small class="text-muted">Current Rate</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-warning border-start border-4 shadow-sm">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="text-muted">Departments</h6>
+                        <h3 class="mb-0 text-warning">{{ department_stats|length }}</h3>
+                    </div>
+                    <i class="bi bi-building text-warning" style="font-size: 2rem;"></i>
+                </div>
+                <small class="text-muted">Active Departments</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-6">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="bi bi-graph-up"></i> Daily Admissions (Last 30 Days)</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="dailyAdmissionsChart" height="150"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="bi bi-activity"></i> Bed Utilization Trend</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="bedUtilizationChart" height="150"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-6">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-building"></i> Department Statistics</h5>
+                <a href="{% url 'analytics:department_analytics' %}" class="btn btn-sm btn-outline-primary">View Details</a>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Department</th>
+                                <th>Patient Count</th>
+                                <th>Appointments</th>
+                                <th>Bed Utilization</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for stat in department_stats %}
+                            <tr>
+                                <td>{{ stat.department.name }}</td>
+                                <td>{{ stat.patient_count }}</td>
+                                <td>{{ stat.appointment_count }}</td>
+                                <td>{{ stat.bed_utilization|floatformat:1 }}%</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4" class="text-center text-muted py-4">
+                                    <i class="bi bi-inbox" style="font-size: 1.5rem;"></i>
+                                    <p class="mt-2 mb-0">No department data available.</p>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-capsule"></i> Medicine Consumption</h5>
+                <a href="{% url 'analytics:medicine_consumption' %}" class="btn btn-sm btn-outline-primary">View Details</a>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Medicine</th>
+                                <th>Quantity</th>
+                                <th>Total Cost</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for med in medicine_consumption %}
+                            <tr>
+                                <td>{{ med.medicine_name }}</td>
+                                <td>{{ med.quantity_consumed }}</td>
+                                <td>${{ med.total_cost|floatformat:2 }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="3" class="text-center text-muted py-4">
+                                    <i class="bi bi-inbox" style="font-size: 1.5rem;"></i>
+                                    <p class="mt-2 mb-0">No consumption data available.</p>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+const dailyCtx = document.getElementById('dailyAdmissionsChart').getContext('2d');
+new Chart(dailyCtx, {
+    type: 'line',
+    data: {
+        labels: [{% for s in daily_stats %}'{{ s.date|date:"M d" }}'{% if not forloop.last %},{% endif %}{% endfor %}],
+        datasets: [{
+            label: 'Admissions',
+            data: [{% for s in daily_stats %}{{ s.total_admissions }}{% if not forloop.last %},{% endif %}{% endfor %}],
+            borderColor: '#0d6efd',
+            backgroundColor: 'rgba(13,110,253,0.1)',
+            fill: true,
+            tension: 0.3
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: true, position: 'top' } },
+        scales: { y: { beginAtZero: true } }
+    }
+});
+
+const bedCtx = document.getElementById('bedUtilizationChart').getContext('2d');
+new Chart(bedCtx, {
+    type: 'line',
+    data: {
+        labels: [{% for b in bed_utilization %}'{{ b.date|date:"M d" }}'{% if not forloop.last %},{% endif %}{% endfor %}],
+        datasets: [{
+            label: 'Utilization %',
+            data: [{% for b in bed_utilization %}{{ b.utilization_rate }}{% if not forloop.last %},{% endif %}{% endfor %}],
+            borderColor: '#198754',
+            backgroundColor: 'rgba(25,135,84,0.1)',
+            fill: true,
+            tension: 0.3
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: true, position: 'top' } },
+        scales: { y: { beginAtZero: true, max: 100, ticks: { callback: function(v) { return v + '%'; } } } }
+    }
+});
+</script>
+{% endblock %}

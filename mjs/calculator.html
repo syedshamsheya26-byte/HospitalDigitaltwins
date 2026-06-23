@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calculator — Module 6.1 Mini Project</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body { background: #1e1b4b; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+    .calc { width: 360px; background: #0f0d2e; border-radius: 24px; padding: 24px; box-shadow: 0 30px 80px rgba(0,0,0,0.6); }
+    .display {
+      background: #1a1740; border-radius: 16px; padding: 20px 24px; margin-bottom: 20px;
+      text-align: right; min-height: 100px; display: flex; flex-direction: column; justify-content: end;
+    }
+    .display .expr { color: #8b89b0; font-size: 1rem; word-break: break-all; min-height: 24px; }
+    .display .result { color: #fff; font-size: 2.2rem; font-weight: 700; word-break: break-all; }
+    .keypad { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+    .key {
+      padding: 18px; font-size: 1.3rem; font-weight: 600; border: none; border-radius: 14px;
+      cursor: pointer; transition: all 0.15s; background: #2a2657; color: #fff;
+    }
+    .key:hover { transform: scale(1.04); }
+    .key:active { transform: scale(0.94); }
+    .key.op { background: #3b3677; color: #a78bfa; }
+    .key.fn { background: #1e1b4b; color: #f59e0b; border: 1px solid #3b3677; }
+    .key.eq { background: linear-gradient(135deg, #7c3aed, #6366f1); color: #fff; }
+    .key.clr { background: #ef4444; color: #fff; }
+    .key[data-value="0"] { grid-column: span 2; }
+  </style>
+</head>
+<body>
+  <div class="calc">
+    <div class="display">
+      <div class="expr" id="expression"></div>
+      <div class="result" id="result">0</div>
+    </div>
+    <div class="keypad" id="keypad">
+      <button class="key fn clr" data-value="AC">AC</button>
+      <button class="key fn" data-value="±">±</button>
+      <button class="key fn" data-value="%">%</button>
+      <button class="key op" data-value="÷">÷</button>
+
+      <button class="key" data-value="7">7</button>
+      <button class="key" data-value="8">8</button>
+      <button class="key" data-value="9">9</button>
+      <button class="key op" data-value="×">×</button>
+
+      <button class="key" data-value="4">4</button>
+      <button class="key" data-value="5">5</button>
+      <button class="key" data-value="6">6</button>
+      <button class="key op" data-value="−">−</button>
+
+      <button class="key" data-value="1">1</button>
+      <button class="key" data-value="2">2</button>
+      <button class="key" data-value="3">3</button>
+      <button class="key op" data-value="+">+</button>
+
+      <button class="key" data-value="0">0</button>
+      <button class="key" data-value=".">.</button>
+      <button class="key eq" data-value="=">=</button>
+    </div>
+    <p class="text-center text-muted mt-3 mb-0" style="font-size:0.8rem; letter-spacing:0.3px;">
+      KEYPAD DELEGATION — §1.10
+    </p>
+  </div>
+
+  <script>
+    // ── State ────────────────────────────────────────────────────────────
+    let currentInput = "0";
+    let expression = "";
+    let operator = null;
+    let previousValue = null;
+    let resetNext = false;
+
+    const resultEl = document.getElementById("result");
+    const exprEl = document.getElementById("expression");
+
+    function updateDisplay() {
+      resultEl.textContent = currentInput;
+      exprEl.textContent = expression;
+    }
+
+    // ── Core Logic ───────────────────────────────────────────────────────
+    function inputNumber(num) {
+      if (resetNext) {
+        currentInput = num;
+        resetNext = false;
+      } else {
+        if (currentInput === "0" && num !== ".") currentInput = num;
+        else currentInput += num;
+      }
+      updateDisplay();
+    }
+
+    function inputDecimal() {
+      if (resetNext) {
+        currentInput = "0.";
+        resetNext = false;
+        updateDisplay();
+        return;
+      }
+      if (!currentInput.includes(".")) currentInput += ".";
+      updateDisplay();
+    }
+
+    function handleOperator(op) {
+      const curr = parseFloat(currentInput);
+      if (operator && !resetNext) {
+        previousValue = calculate(previousValue, curr, operator);
+        expression = `${formatNumber(previousValue)} ${op}`;
+        currentInput = formatNumber(previousValue);
+      } else {
+        previousValue = curr;
+        expression = `${currentInput} ${op}`;
+      }
+      operator = op;
+      resetNext = true;
+      updateDisplay();
+    }
+
+    function calculate(a, b, op) {
+      switch (op) {
+        case "+": return a + b;
+        case "−": return a - b;
+        case "×": return a * b;
+        case "÷": return b !== 0 ? a / b : "Error";
+        default: return b;
+      }
+    }
+
+    function handleEquals() {
+      if (!operator) return;
+      const curr = parseFloat(currentInput);
+      const result = calculate(previousValue, curr, operator);
+      expression = `${formatNumber(previousValue)} ${operator} ${currentInput} =`;
+      currentInput = result === "Error" ? "Error" : formatNumber(result);
+      operator = null;
+      previousValue = null;
+      resetNext = true;
+      updateDisplay();
+    }
+
+    function handlePercent() {
+      const num = parseFloat(currentInput) / 100;
+      currentInput = formatNumber(num);
+      updateDisplay();
+    }
+
+    function handleNegate() {
+      if (currentInput !== "0") {
+        currentInput = currentInput.startsWith("-") ? currentInput.slice(1) : "-" + currentInput;
+        updateDisplay();
+      }
+    }
+
+    function clearAll() {
+      currentInput = "0";
+      expression = "";
+      operator = null;
+      previousValue = null;
+      resetNext = false;
+      updateDisplay();
+    }
+
+    function formatNumber(n) {
+      if (n === "Error") return "Error";
+      if (Number.isInteger(n)) return String(n);
+      const s = n.toFixed(10).replace(/\.?0+$/, "");
+      return s;
+    }
+
+    // ── Event Delegation (§1.10) — ONE listener on the keypad ──────────
+    document.getElementById("keypad").addEventListener("click", (e) => {
+      const key = e.target.closest(".key");
+      if (!key) return;
+
+      const val = key.dataset.value;
+
+      if (val === "AC")          clearAll();
+      else if (val === "±")      handleNegate();
+      else if (val === "%")      handlePercent();
+      else if (val === "=")      handleEquals();
+      else if (["+", "−", "×", "÷"].includes(val)) handleOperator(val);
+      else if (val === ".")      inputDecimal();
+      else                       inputNumber(val);
+    });
+
+    // ── Keyboard Support ─────────────────────────────────────────────────
+    document.addEventListener("keydown", (e) => {
+      const map = { "+": "+", "-": "−", "*": "×", "/": "÷", Enter: "=", Backspace: "AC", Escape: "AC" };
+      const val = map[e.key] || (/\d/.test(e.key) ? e.key : null);
+      if (!val) return;
+      const key = document.querySelector(`.key[data-value="${val}"]`);
+      if (key) {
+        key.click();
+        key.style.transform = "scale(0.94)";
+        setTimeout(() => (key.style.transform = ""), 100);
+      }
+    });
+  </script>
+</body>
+</html>

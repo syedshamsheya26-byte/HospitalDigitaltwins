@@ -1,0 +1,146 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Inventory Dashboard - Hospital Digital Twin{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-speedometer2"></i> Inventory Dashboard</h2>
+    <div>
+        <a href="{% url 'dashboard:home' %}" class="btn btn-outline-secondary btn-sm me-2"><i class="bi bi-arrow-left"></i> Back to Dashboard</a>
+        <a href="{% url 'inventory:medicine_list' %}" class="btn btn-outline-primary"><i class="bi bi-capsule"></i> Medicines</a>
+        <a href="{% url 'inventory:inventory_list' %}" class="btn btn-outline-success"><i class="bi bi-boxes"></i> Stock</a>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card shadow-sm h-100 border-start border-primary border-4">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-muted mb-1">Total Medicines</h6>
+                        <h3 class="mb-0">{{ total_medicines }}</h3>
+                    </div>
+                    <i class="bi bi-capsule text-primary" style="font-size: 2rem;"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card shadow-sm h-100 border-start border-warning border-4">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-muted mb-1">Low Stock Items</h6>
+                        <h3 class="mb-0">{{ low_stock_count }}</h3>
+                    </div>
+                    <i class="bi bi-exclamation-triangle text-warning" style="font-size: 2rem;"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card shadow-sm h-100 border-start border-danger border-4">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-muted mb-1">Expired Items</h6>
+                        <h3 class="mb-0">{{ expired_count }}</h3>
+                    </div>
+                    <i class="bi bi-x-circle text-danger" style="font-size: 2rem;"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card shadow-sm h-100 border-start border-success border-4">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-muted mb-1">Total Stock Value</h6>
+                        <h3 class="mb-0">₹{{ total_value|floatformat:2 }}</h3>
+                    </div>
+                    <i class="bi bi-currency-rupee text-success" style="font-size: 2rem;"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-md-6">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="bi bi-bar-chart"></i> Stock Levels</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="stockLevelChart" height="250"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="bi bi-pie-chart"></i> Medicine Category Distribution</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="categoryChart" height="250"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+{% if stock_labels and stock_data %}
+new Chart(document.getElementById('stockLevelChart'), {
+    type: 'bar',
+    data: {
+        labels: {{ stock_labels|safe }},
+        datasets: [{
+            label: 'Current Stock',
+            data: {{ stock_data|safe }},
+            backgroundColor: 'rgba(13, 110, 253, 0.7)',
+            borderColor: 'rgba(13, 110, 253, 1)',
+            borderWidth: 1
+        }]
+    },
+    options: {
+        responsive: true,
+        scales: {
+            y: { beginAtZero: true }
+        },
+        plugins: {
+            legend: { display: false }
+        }
+    }
+});
+{% else %}
+document.getElementById('stockLevelChart').parentElement.innerHTML = '<div class="text-center text-muted py-5"><i class="bi bi-bar-chart" style="font-size: 2rem;"></i><p class="mt-2 mb-0">No stock data available.</p></div>';
+{% endif %}
+
+{% if category_labels and category_data %}
+new Chart(document.getElementById('categoryChart'), {
+    type: 'pie',
+    data: {
+        labels: {{ category_labels|safe }},
+        datasets: [{
+            data: {{ category_data|safe }},
+            backgroundColor: [
+                '#0d6efd', '#198754', '#ffc107', '#dc3545',
+                '#0dcaf0', '#6610f2', '#d63384', '#fd7e14'
+            ]
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: { position: 'bottom' }
+        }
+    }
+});
+{% else %}
+document.getElementById('categoryChart').parentElement.innerHTML = '<div class="text-center text-muted py-5"><i class="bi bi-pie-chart" style="font-size: 2rem;"></i><p class="mt-2 mb-0">No category data available.</p></div>';
+{% endif %}
+</script>
+{% endblock %}

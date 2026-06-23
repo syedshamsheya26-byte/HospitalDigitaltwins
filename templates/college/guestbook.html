@@ -1,0 +1,141 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <div class="text-center mb-5">
+        <h2 class="fw-bold">📖 Guestbook</h2>
+        <p class="text-muted fs-5">Reload-free AJAX — no page reloads needed</p>
+        <span class="badge bg-info fs-6">Module 6.2 — fetch() + async/await</span>
+      </div>
+
+      <!-- Form -->
+      <div class="card shadow-sm border-0 mb-4">
+        <div class="card-body p-4">
+          <h5 class="fw-semibold mb-3">Leave a Message</h5>
+          <form id="guestbook-form" novalidate>
+            <div class="row g-3">
+              <div class="col-md-4">
+                <input type="text" name="name" class="form-control" placeholder="Your name" required>
+              </div>
+              <div class="col-md-6">
+                <input type="text" name="message" class="form-control" placeholder="Write your message…" required>
+              </div>
+              <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100">Post</button>
+              </div>
+            </div>
+          </form>
+          <div id="form-feedback" class="mt-2"></div>
+        </div>
+      </div>
+
+      <!-- Spinner -->
+      <div id="spinner" class="text-center py-4 d-none">
+        <div class="spinner-border text-primary"></div>
+        <p class="text-muted mt-2">Loading messages…</p>
+      </div>
+
+      <!-- Messages List -->
+      <div id="entries-container"></div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// ── CSRF ──────────────────────────────────────────────────────────────
+function getCookie(name) {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop().split(";").shift();
+}
+const csrftoken = getCookie("csrftoken");
+
+// ── DOM refs ──────────────────────────────────────────────────────────
+const form = document.getElementById("guestbook-form");
+const container = document.getElementById("entries-container");
+const spinner = document.getElementById("spinner");
+const feedback = document.getElementById("form-feedback");
+
+// ── Render entries ────────────────────────────────────────────────────
+function renderEntries(entries) {
+  container.innerHTML = entries.length === 0
+    ? `<p class="text-muted text-center py-4">No messages yet. Be the first!</p>`
+    : entries.map(e => `
+      <div class="card shadow-sm border-0 mb-3">
+        <div class="card-body">
+          <div class="d-flex justify-content-between">
+            <strong>${escapeHtml(e.name)}</strong>
+            <small class="text-muted">${new Date(e.created_at).toLocaleString()}</small>
+          </div>
+          <p class="mb-0 mt-2">${escapeHtml(e.message)}</p>
+        </div>
+      </div>
+    `).join("");
+}
+
+function escapeHtml(str) {
+  const div = document.createElement("div");
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+// ── Load entries (GET) ────────────────────────────────────────────────
+async function loadEntries() {
+  spinner.classList.remove("d-none");
+  try {
+    const r = await fetch("/api/guestbook/");
+    const data = await r.json();
+    renderEntries(data.entries);
+  } catch {
+    container.innerHTML = `<p class="text-danger text-center">Failed to load messages.</p>`;
+  } finally {
+    spinner.classList.add("d-none");
+  }
+}
+
+// ── Post entry (POST) ─────────────────────────────────────────────────
+async function postEntry(formEl) {
+  const btn = formEl.querySelector("[type=submit]");
+  btn.disabled = true;
+  const name = formEl.name.value.trim();
+  const message = formEl.message.value.trim();
+  if (!name || !message) {
+    feedback.innerHTML = `<div class="alert alert-danger py-2">Both fields required.</div>`;
+    btn.disabled = false;
+    return;
+  }
+  try {
+    const r = await fetch("/api/guestbook/add/", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-CSRFToken": csrftoken },
+      body: JSON.stringify({ name, message }),
+    });
+    const body = await r.json();
+    if (r.ok) {
+      formEl.reset();
+      feedback.innerHTML = `<div class="alert alert-success py-2">Message posted! ✅</div>`;
+      loadEntries();
+    } else {
+      feedback.innerHTML = `<div class="alert alert-danger py-2">${body.error || "Error"}</div>`;
+    }
+  } catch {
+    feedback.innerHTML = `<div class="alert alert-danger py-2">Network error.</div>`;
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+// ── Event listeners ───────────────────────────────────────────────────
+form.addEventListener("submit", (e) => {
+  e.preventDefault();
+  postEntry(e.target);
+});
+
+document.addEventListener("DOMContentLoaded", loadEntries);
+</script>
+{% endblock %}

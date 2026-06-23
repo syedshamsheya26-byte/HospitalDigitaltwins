@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Telemedicine Sessions{% endblock %}
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="bi bi-camera-video text-primary"></i> Telemedicine Sessions</h2>
+        <a href="{% url 'telemedicine:session_create' %}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Start Session</a>
+    </div>
+    <div class="card shadow">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Patient</th>
+                            <th>Doctor</th>
+                            <th>Date</th>
+                            <th>Time</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for s in sessions %}
+                        <tr>
+                            <td>{{ s.patient_name }}</td>
+                            <td>{{ s.doctor_name }}</td>
+                            <td>{{ s.appointment_date }}</td>
+                            <td>{{ s.appointment_time }}</td>
+                            <td><span class="badge bg-{% if s.status == 'completed' %}success{% elif s.status == 'cancelled' %}danger{% elif s.status == 'in_progress' %}warning{% else %}info{% endif %}">{{ s.get_status_display }}</span></td>
+                            <td>
+                                <a href="{% url 'telemedicine:session_detail' s.pk %}" class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></a>
+                                <a href="{% url 'telemedicine:session_update' s.pk %}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil"></i></a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="6" class="text-center text-muted">No sessions found.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
