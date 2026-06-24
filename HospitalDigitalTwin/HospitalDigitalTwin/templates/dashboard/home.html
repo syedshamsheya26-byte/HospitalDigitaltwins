@@ -1,0 +1,217 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Dashboard - Hospital Digital Twin{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="stats-grid animate-up">
+  <div class="stat-card">
+    <div class="stat-top">
+      <div class="stat-icon blue"><i class="bi bi-people-fill"></i></div>
+    </div>
+    <div class="stat-label">Total Patients</div>
+    <div class="stat-value" data-count="{{ total_patients|default:0 }}">{{ total_patients|default:0 }}</div>
+    <div class="stat-footer">Registered patients</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-top">
+      <div class="stat-icon teal"><i class="bi bi-bed-fill"></i></div>
+    </div>
+    <div class="stat-label">Available Beds</div>
+    <div class="stat-value" data-count="{{ available_beds|default:0 }}">{{ available_beds|default:0 }}/{{ total_beds|default:0 }}</div>
+    <div class="stat-footer">ICU: {{ icu_beds_available|default:0 }} | General: {{ general_beds_available|default:0 }}</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-top">
+      <div class="stat-icon green"><i class="bi bi-calendar-check-fill"></i></div>
+    </div>
+    <div class="stat-label">Today's Appointments</div>
+    <div class="stat-value" data-count="{{ today_appointments|default:0 }}">{{ today_appointments|default:0 }}</div>
+    <div class="stat-footer">{{ pending_appointments|default:0 }} pending</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-top">
+      <div class="stat-icon orange"><i class="bi bi-exclamation-triangle-fill"></i></div>
+    </div>
+    <div class="stat-label">Alerts</div>
+    <div class="stat-value" data-count="{{ low_stock_medicines|default:0 }}">{{ low_stock_medicines|default:0 }}</div>
+    <div class="stat-footer">Low stock: {{ low_stock_medicines|default:0 }} | Expired: {{ expired_medicines|default:0 }}</div>
+  </div>
+</div>
+
+<div class="content-grid grid-2-1" style="margin-bottom: 28px;">
+  <div class="card animate-up">
+    <div class="card-header">
+      <h5><i class="bi bi-graph-up"></i> Bed Occupancy Trend</h5>
+    </div>
+    <div class="card-body">
+      <div class="chart-container"><canvas id="bedOccupancyChart"></canvas></div>
+    </div>
+  </div>
+  <div class="card animate-up">
+    <div class="card-header">
+      <h5><i class="bi bi-pie-chart-fill"></i> Bed Distribution</h5>
+    </div>
+    <div class="card-body">
+      <div class="chart-container" style="height: 260px;"><canvas id="bedDistributionChart"></canvas></div>
+    </div>
+  </div>
+</div>
+
+<div class="content-grid grid-2" style="margin-bottom: 28px;">
+  <div class="card animate-up">
+    <div class="card-header">
+      <h5><i class="bi bi-people-fill"></i> Recent Patients</h5>
+      <a href="{% url 'patients:patient_list' %}" class="btn btn-sm btn-ghost">View All</a>
+    </div>
+    <div class="card-body p-0">
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr><th>ID</th><th>Name</th><th>Status</th></tr>
+          </thead>
+          <tbody>
+            {% for p in recent_patients %}
+            <tr>
+              <td><strong>{{ p.patient_id }}</strong></td>
+              <td><a href="{% url 'patients:patient_detail' p.id %}">{{ p.first_name }} {{ p.last_name }}</a></td>
+              <td><span class="badge badge-{% if p.status == 'admitted' %}success{% elif p.status == 'emergency' %}error{% else %}muted{% endif %}">{{ p.get_status_display }}</span></td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="3" class="text-center" style="padding: 24px; color: var(--text-muted);">No patients yet</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="card animate-up">
+    <div class="card-header">
+      <h5><i class="bi bi-calendar-check-fill"></i> Upcoming Appointments</h5>
+      <a href="{% url 'appointments:appointment_list' %}" class="btn btn-sm btn-ghost">View All</a>
+    </div>
+    <div class="card-body p-0">
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr><th>Patient</th><th>Doctor</th><th>Date</th><th>Status</th></tr>
+          </thead>
+          <tbody>
+            {% for apt in upcoming_appointments %}
+            <tr>
+              <td>{{ apt.patient.first_name }} {{ apt.patient.last_name }}</td>
+              <td>Dr. {{ apt.doctor.first_name }}</td>
+              <td>{{ apt.appointment_date|date:"d M Y" }} {{ apt.appointment_time|time:"H:i" }}</td>
+              <td><span class="badge badge-{% if apt.status == 'scheduled' %}primary{% elif apt.status == 'completed' %}success{% elif apt.status == 'cancelled' %}error{% else %}muted{% endif %}">{{ apt.get_status_display }}</span></td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4" class="text-center" style="padding: 24px; color: var(--text-muted);">No upcoming appointments</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="content-grid grid-3 animate-up">
+  <div class="card">
+    <div class="card-header">
+      <h5><i class="bi bi-building"></i> Department Overview</h5>
+    </div>
+    <div class="card-body p-0">
+      <div class="table-wrapper">
+        <table>
+          <thead><tr><th>Department</th><th>Patients</th></tr></thead>
+          <tbody>
+            {% for dept in department_data %}
+            <tr><td>{{ dept.name }}</td><td><span class="badge badge-primary">{{ dept.count }}</span></td></tr>
+            {% empty %}
+            <tr><td colspan="2" class="text-center" style="padding: 24px; color: var(--text-muted);">No data</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header">
+      <h5><i class="bi bi-robot"></i> Recent Predictions</h5>
+    </div>
+    <div class="card-body p-0">
+      <div class="table-wrapper">
+        <table>
+          <thead><tr><th>Type</th><th>Value</th><th>Conf.</th></tr></thead>
+          <tbody>
+            {% for pred in recent_predictions %}
+            <tr>
+              <td>{{ pred.get_prediction_type_display }}</td>
+              <td><strong>{{ pred.predicted_value }}</strong></td>
+              <td><span class="badge badge-{% if pred.confidence_score > 80 %}success{% elif pred.confidence_score > 60 %}warning{% else %}error{% endif %}">{{ pred.confidence_score }}%</span></td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="3" class="text-center" style="padding: 24px; color: var(--text-muted);">No predictions yet</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header">
+      <h5><i class="bi bi-shield-fill-exclamation"></i> Risk Alerts</h5>
+    </div>
+    <div class="card-body p-0">
+      <div class="table-wrapper">
+        <table>
+          <thead><tr><th>Patient</th><th>Risk</th><th>Score</th></tr></thead>
+          <tbody>
+            {% for risk in risk_alerts %}
+            <tr>
+              <td>{{ risk.patient_name }}</td>
+              <td><span class="badge risk-{{ risk.risk_level }}">{{ risk.risk_level|title }}</span></td>
+              <td>{{ risk.risk_score|floatformat:1 }}%</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="3" class="text-center" style="padding: 24px; color: var(--text-muted);">No risk alerts</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  setTimeout(function () {
+    var counters = document.querySelectorAll('[data-count]');
+    counters.forEach(function (el) {
+      var target = parseFloat(el.getAttribute('data-count')) || 0;
+      if (target > 0) {
+        var duration = 1200;
+        var startTime = null;
+        function step(ts) {
+          if (!startTime) startTime = ts;
+          var progress = Math.min((ts - startTime) / duration, 1);
+          var eased = 1 - Math.pow(1 - progress, 3);
+          var current = Math.floor(eased * target);
+          var text = el.textContent;
+          if (text.includes('/')) {
+            var parts = text.split('/');
+            el.textContent = current + '/' + parts[1];
+          } else {
+            el.textContent = current;
+          }
+          if (progress < 1) requestAnimationFrame(step);
+          else el.textContent = target + (text.includes('/') ? '/' + text.split('/')[1] : '');
+        }
+        requestAnimationFrame(step);
+      }
+    });
+  }, 100);
+});
+</script>
+{% endblock %}

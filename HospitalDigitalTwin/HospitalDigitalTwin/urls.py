@@ -2,10 +2,12 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from dashboard import views as dashboard_views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('accounts.urls')),
+    path('', dashboard_views.patient_dashboard, name='homepage'),
+    path('auth/', include('accounts.urls')),
     path('patients/', include('patients.urls')),
     path('appointments/', include('appointments.urls')),
     path('beds/', include('beds.urls')),

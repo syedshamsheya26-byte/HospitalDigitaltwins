@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Surgical Robots{% endblock %}
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="bi bi-robot text-primary"></i> Surgical Robots</h2>
+        <a href="{% url 'robotics:robot_create' %}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Register Robot</a>
+    </div>
+    <div class="card shadow">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Robot ID</th>
+                            <th>Name</th>
+                            <th>Type</th>
+                            <th>Location</th>
+                            <th>Status</th>
+                            <th>Last Maintenance</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for r in robots %}
+                        <tr>
+                            <td>{{ r.robot_id }}</td>
+                            <td>{{ r.name }}</td>
+                            <td>{{ r.robot_type }}</td>
+                            <td>{{ r.location }}</td>
+                            <td><span class="badge bg-{% if r.status == 'available' %}success{% elif r.status == 'in_use' %}warning{% elif r.status == 'maintenance' %}danger{% else %}secondary{% endif %}">{{ r.get_status_display }}</span></td>
+                            <td>{{ r.last_maintenance|default:'N/A' }}</td>
+                            <td>
+                                <a href="{% url 'robotics:robot_detail' r.pk %}" class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></a>
+                                <a href="{% url 'robotics:robot_update' r.pk %}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil"></i></a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="7" class="text-center text-muted">No robots registered.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

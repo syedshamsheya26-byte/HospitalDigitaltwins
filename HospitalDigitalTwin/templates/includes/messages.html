@@ -1,0 +1,17 @@
+{% if messages %}
+{% for message in messages %}
+<div class="alert alert-{{ message.tags }} animate-up" role="alert">
+  {% if message.tags == 'success' %}
+  <i class="bi bi-check-circle-fill"></i>
+  {% elif message.tags == 'error' %}
+  <i class="bi bi-exclamation-circle-fill"></i>
+  {% elif message.tags == 'warning' %}
+  <i class="bi bi-exclamation-triangle-fill"></i>
+  {% else %}
+  <i class="bi bi-info-circle-fill"></i>
+  {% endif %}
+  {{ message }}
+  <button type="button" class="close" onclick="this.parentElement.remove()">&times;</button>
+</div>
+{% endfor %}
+{% endif %}

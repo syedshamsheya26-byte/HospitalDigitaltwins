@@ -4,7 +4,6 @@ from django.contrib.auth.models import User
 class UserRole(models.Model):
     ROLE_CHOICES = [
         ('admin', 'Admin'),
-        ('doctor', 'Doctor'),
         ('staff', 'Staff'),
         ('patient', 'Patient'),
     ]

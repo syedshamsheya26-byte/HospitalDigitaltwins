@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Patient Records - Hospital Digital Twin{% endblock %}
+{% block page_title %}Patient Records{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-between align-center flex-wrap gap-2 mb-4">
+  <div></div>
+  <div class="d-flex gap-2">
+    <a href="{% url 'patients:patient_create' %}" class="btn btn-primary"><i class="bi bi-person-plus"></i> Add Patient</a>
+  </div>
+</div>
+
+<div class="card animate-up mb-4">
+  <div class="card-body">
+    <form method="get" class="d-flex flex-wrap gap-3 align-center">
+      <div class="search-box" style="flex: 1; min-width: 200px;">
+        <i class="bi bi-search search-icon"></i>
+        <input type="text" name="q" placeholder="Search by name..." value="{{ query }}">
+      </div>
+      <select name="status" class="form-select" style="width: auto; min-width: 150px;">
+        <option value="">All Statuses</option>
+        <option value="admitted" {% if request.GET.status == 'admitted' %}selected{% endif %}>Admitted</option>
+        <option value="discharged" {% if request.GET.status == 'discharged' %}selected{% endif %}>Discharged</option>
+        <option value="emergency" {% if request.GET.status == 'emergency' %}selected{% endif %}>Emergency</option>
+        <option value="outpatient" {% if request.GET.status == 'outpatient' %}selected{% endif %}>Outpatient</option>
+      </select>
+      <button type="submit" class="btn btn-primary">Filter</button>
+    </form>
+  </div>
+</div>
+
+<div class="card animate-up">
+  <div class="card-header">
+    <h5><i class="bi bi-people-fill"></i> Patient Records</h5>
+  </div>
+  <div class="card-body p-0">
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Patient ID</th>
+            <th>Name</th>
+            <th>Gender</th>
+            <th>Blood Group</th>
+            <th>Phone</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for patient in patients %}
+          <tr>
+            <td><strong>{{ patient.patient_id }}</strong></td>
+            <td><a href="{% url 'patients:patient_detail' patient.pk %}">{{ patient.first_name }} {{ patient.last_name }}</a></td>
+            <td>{{ patient.get_gender_display }}</td>
+            <td>{{ patient.blood_group }}</td>
+            <td>{{ patient.phone }}</td>
+            <td>
+              <span class="badge badge-{% if patient.status == 'admitted' %}success{% elif patient.status == 'discharged' %}muted{% elif patient.status == 'emergency' %}error{% elif patient.status == 'outpatient' %}primary{% endif %}">
+                {{ patient.get_status_display }}
+              </span>
+            </td>
+            <td>
+              <a href="{% url 'patients:patient_detail' patient.pk %}" class="btn btn-sm btn-ghost" title="View"><i class="bi bi-eye"></i></a>
+              <a href="{% url 'patients:patient_update' patient.pk %}" class="btn btn-sm btn-ghost" title="Edit"><i class="bi bi-pencil"></i></a>
+              <a href="{% url 'patients:patient_delete' patient.pk %}" class="btn btn-sm btn-ghost" title="Delete" style="color: var(--error);"><i class="bi bi-trash"></i></a>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="7" class="text-center" style="padding: 48px; color: var(--text-muted);">
+              <i class="bi bi-inbox" style="font-size: 2rem; display: block; margin-bottom: 8px;"></i>
+              <p>No patients found.</p>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

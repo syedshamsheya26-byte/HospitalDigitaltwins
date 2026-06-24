@@ -148,8 +148,7 @@ def create_sample_data():
                 )
     print("Created medicines and inventory")
 
-    doctor_names_pool = ['Dr. Sharma', 'Dr. Patel', 'Dr. Verma', 'Dr. Gupta',
-                         'Dr. Johnson', 'Dr. Chen', 'Dr. Taylor', 'Dr. Brown']
+    departments_pool = ['Cardiology', 'Neurology', 'Orthopedics', 'Pediatrics', 'General Medicine']
     for i in range(40):
         apt_date = date.today() + timedelta(days=random.randint(-15, 30))
         apt_time = f"{random.randint(9, 16)}:{random.choice(['00','30'])}:00"
@@ -158,8 +157,8 @@ def create_sample_data():
             appointment_id=f"APT-{apt_date.strftime('%Y%m%d')}-{i+1:04d}",
             defaults={
                 'patient': patient,
-                'doctor_name': random.choice(doctor_names_pool),
-                'doctor_specialization': random.choice(['Cardiology', 'Neurology', 'Orthopedics', 'Pediatrics', 'General']),
+                'doctor_name': '',
+                'doctor_specialization': random.choice(departments_pool),
                 'appointment_date': apt_date,
                 'appointment_time': datetime.strptime(apt_time, '%H:%M:%S').time(),
                 'reason': random.choice(['Routine checkup', 'Follow-up', 'Consultation', 'Emergency']),

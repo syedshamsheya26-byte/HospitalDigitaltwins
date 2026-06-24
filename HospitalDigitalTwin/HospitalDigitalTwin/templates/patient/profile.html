@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}My Profile - Hospital Digital Twin{% endblock %}
+{% block page_title %}My Profile{% endblock %}
+
+{% block content %}
+<div class="card animate-up" style="max-width: 640px;">
+  <div class="card-header">
+    <h5><i class="bi bi-person-fill"></i> Personal Information</h5>
+  </div>
+  <div class="card-body">
+    <div class="insights-grid">
+      {% for label, value in profile_fields %}
+      <div class="insight-item">
+        <span class="insight-label">{{ label }}</span>
+        <span class="insight-value">{{ value }}</span>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}

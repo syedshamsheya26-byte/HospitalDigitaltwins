@@ -82,7 +82,7 @@ def patient_login_submit(request):
             messages.success(request, msg)
         except Exception:
             pass
-        return redirect('dashboard:patient_dashboard')
+        return redirect('/')
 
     return redirect('accounts:login')
 
@@ -106,8 +106,7 @@ def logout_view(request):
             request.session.pop(key, None)
 
     logout(request)
-    messages.info(request, 'You have been logged out.')
-    return redirect('accounts:login')
+    return redirect('/')
 
 
 @login_required

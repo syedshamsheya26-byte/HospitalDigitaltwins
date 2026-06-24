@@ -1,18 +1,17 @@
 {% extends 'base.html' %}
 {% load static %}
-{% block title %}My Appointments{% endblock %}
+{% block title %}My Appointments - Hospital Digital Twin{% endblock %}
+{% block page_title %}My Appointments{% endblock %}
+
 {% block content %}
-<div class="container-fluid">
-    <h2 class="mb-4"><i class="bi bi-calendar-check text-success"></i> My Appointments</h2>
-    <div class="alert alert-info">
-        <i class="bi bi-info-circle"></i> Appointments are managed by hospital staff. Please contact the reception desk to book or reschedule appointments.
-    </div>
-    <div class="card shadow">
-        <div class="card-body text-center py-5">
-            <i class="bi bi-calendar-plus text-primary" style="font-size: 4rem;"></i>
-            <h4 class="mt-3">Appointment Booking</h4>
-            <p class="text-muted">Visit the hospital reception or call to schedule an appointment.</p>
-        </div>
-    </div>
+<div class="card animate-up">
+  <div class="card-header">
+    <h5><i class="bi bi-calendar-check-fill"></i> Appointments</h5>
+  </div>
+  <div class="card-body" style="text-align: center; padding: 48px; color: var(--text-muted);">
+    <i class="bi bi-calendar-plus" style="font-size: 4rem; display: block; margin-bottom: 16px; opacity: 0.4;"></i>
+    <p style="font-size: 15px; margin-bottom: 4px;">No upcoming appointments</p>
+    <p style="font-size: 13px;">Appointments are managed by hospital staff. Please contact reception to book.</p>
+  </div>
 </div>
 {% endblock %}

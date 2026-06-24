@@ -1,0 +1,141 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Bed Occupancy Dashboard - Hospital Digital Twin{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-bar-chart"></i> Bed Occupancy Dashboard</h2>
+    <div>
+        <a href="{% url 'dashboard:home' %}" class="btn btn-outline-secondary btn-sm me-2"><i class="bi bi-arrow-left"></i> Back to Dashboard</a>
+        <a href="{% url 'beds:bed_list' %}" class="btn btn-outline-primary"><i class="bi bi-bed"></i> View Beds</a>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    {% for item in stats %}
+    <div class="col-md-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="card-title mb-0">
+                        {% if item.bed_type == 'icu' %}<i class="bi bi-heart-pulse text-danger"></i>
+                        {% elif item.bed_type == 'emergency' %}<i class="bi bi-ambulance text-warning"></i>
+                        {% else %}<i class="bi bi-bed text-primary"></i>{% endif %}
+                        {{ item.bed_type|title }}
+                    </h5>
+                    <span class="badge bg-secondary">{{ item.total }} Total</span>
+                </div>
+                <div class="row text-center g-2">
+                    <div class="col-4">
+                        <h4 class="text-success mb-0">{{ item.available }}</h4>
+                        <small class="text-muted">Available</small>
+                    </div>
+                    <div class="col-4">
+                        <h4 class="text-danger mb-0">{{ item.occupied }}</h4>
+                        <small class="text-muted">Occupied</small>
+                    </div>
+                    <div class="col-4">
+                        <h4 class="text-warning mb-0">{{ item.maintenance }}</h4>
+                        <small class="text-muted">Maintenance</small>
+                    </div>
+                </div>
+                {% if item.total %}
+                <div class="progress mt-3" style="height: 10px;">
+                    <div class="progress-bar bg-success" style="width: {% widthratio item.available item.total 100 %}%"></div>
+                    <div class="progress-bar bg-danger" style="width: {% widthratio item.occupied item.total 100 %}%"></div>
+                    <div class="progress-bar bg-warning" style="width: {% widthratio item.maintenance item.total 100 %}%"></div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<div class="row g-4">
+    <div class="col-md-6">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="bi bi-pie-chart"></i> Overall Occupancy</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="occupancyPieChart" height="250"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="bi bi-bar-chart"></i> Bed Type Distribution</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="bedTypeBarChart" height="250"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+const stats = {{ stats|safe }};
+
+const pieLabels = stats.map(s => s.bed_type.charAt(0).toUpperCase() + s.bed_type.slice(1).replace('_', ' '));
+const pieTotal = stats.reduce((sum, s) => sum + s.total, 0);
+const pieAvailable = stats.reduce((sum, s) => sum + s.available, 0);
+const pieOccupied = stats.reduce((sum, s) => sum + s.occupied, 0);
+const pieMaintenance = stats.reduce((sum, s) => sum + s.maintenance, 0);
+
+new Chart(document.getElementById('occupancyPieChart'), {
+    type: 'pie',
+    data: {
+        labels: ['Available', 'Occupied', 'Under Maintenance'],
+        datasets: [{
+            data: [pieAvailable, pieOccupied, pieMaintenance],
+            backgroundColor: ['#198754', '#dc3545', '#ffc107'],
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: { position: 'bottom' }
+        }
+    }
+});
+
+const barLabels = stats.map(s => s.bed_type.charAt(0).toUpperCase() + s.bed_type.slice(1).replace('_', ' '));
+
+new Chart(document.getElementById('bedTypeBarChart'), {
+    type: 'bar',
+    data: {
+        labels: barLabels,
+        datasets: [
+            {
+                label: 'Available',
+                data: stats.map(s => s.available),
+                backgroundColor: '#198754',
+            },
+            {
+                label: 'Occupied',
+                data: stats.map(s => s.occupied),
+                backgroundColor: '#dc3545',
+            },
+            {
+                label: 'Maintenance',
+                data: stats.map(s => s.maintenance),
+                backgroundColor: '#ffc107',
+            }
+        ]
+    },
+    options: {
+        responsive: true,
+        scales: {
+            x: { stacked: true },
+            y: { stacked: true, beginAtZero: true }
+        },
+        plugins: {
+            legend: { position: 'bottom' }
+        }
+    }
+});
+</script>
+{% endblock %}

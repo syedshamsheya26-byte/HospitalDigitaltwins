@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Risk Prediction History - Hospital Digital Twin{% endblock %}
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12 d-flex justify-content-between align-items-center">
+        <div>
+            <h2><i class="bi bi-shield-exclamation"></i> Risk Prediction History</h2>
+            <p class="text-muted">View all patient risk assessments and their results</p>
+        </div>
+        <div>
+            <a href="{% url 'predictions:prediction_dashboard' %}" class="btn btn-outline-secondary btn-sm me-2"><i class="bi bi-arrow-left"></i> Back to Predictions</a>
+            <a href="{% url 'predictions:risk_prediction' %}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> New Risk Assessment
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Patient Name</th>
+                        <th>Age</th>
+                        <th>Gender</th>
+                        <th>Risk Level</th>
+                        <th>Risk Score</th>
+                        <th>Predicted Condition</th>
+                        <th>Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for pred in predictions %}
+                    <tr>
+                        <td>{{ pred.patient_name }}</td>
+                        <td>{{ pred.age }}</td>
+                        <td>{{ pred.gender }}</td>
+                        <td>
+                            <span class="badge bg-{% if pred.risk_level == 'critical' %}dark{% elif pred.risk_level == 'high' %}danger{% elif pred.risk_level == 'medium' %}warning{% else %}success{% endif %}">
+                                {{ pred.risk_level|title }}
+                            </span>
+                        </td>
+                        <td>{{ pred.risk_score|floatformat:1 }}%</td>
+                        <td>{{ pred.predicted_condition }}</td>
+                        <td>{{ pred.created_at|date:"d M Y H:i" }}</td>
+                        <td>
+                            <a href="{% url 'predictions:risk_prediction_detail' pred.pk %}" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-eye"></i> View Detail
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="text-center text-muted py-5">
+                            <i class="bi bi-shield-check" style="font-size: 3rem;"></i>
+                            <h5 class="mt-2">No risk predictions yet</h5>
+                            <p>Run a risk assessment to see results here</p>
+                            <a href="{% url 'predictions:risk_prediction' %}" class="btn btn-primary">
+                                <i class="bi bi-plus-circle"></i> New Risk Assessment
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% if predictions %}
+    <div class="card-footer bg-white text-muted small">
+        Total records: {{ predictions|length }}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

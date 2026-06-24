@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Medical History - Hospital Digital Twin{% endblock %}
+{% block page_title %}Medical History{% endblock %}
+
+{% block content %}
+<div class="card animate-up">
+  <div class="card-header">
+    <h5><i class="bi bi-file-medical-fill"></i> Medical Records</h5>
+  </div>
+  <div class="card-body" style="text-align: center; padding: 48px; color: var(--text-muted);">
+    <i class="bi bi-file-medical" style="font-size: 4rem; display: block; margin-bottom: 16px; opacity: 0.4;"></i>
+    <p style="font-size: 15px; margin-bottom: 4px;">No medical records available</p>
+    <p style="font-size: 13px;">Your medical history will appear here once recorded by your healthcare provider.</p>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Robotic Procedures{% endblock %}
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="bi bi-robot text-primary"></i> Robotic Procedures</h2>
+        <a href="{% url 'robotics:procedure_create' %}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Schedule Procedure</a>
+    </div>
+    <div class="card shadow">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Procedure ID</th>
+                            <th>Patient</th>
+                            <th>Robot</th>
+                            <th>Type</th>
+                            <th>Surgeon</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for p in procedures %}
+                        <tr>
+                            <td>{{ p.procedure_id }}</td>
+                            <td>{{ p.patient_name }}</td>
+                            <td>{{ p.robot.name }}</td>
+                            <td>{{ p.procedure_type }}</td>
+                            <td>{{ p.surgeon }}</td>
+                            <td>{{ p.scheduled_date }}</td>
+                            <td><span class="badge bg-{% if p.status == 'completed' %}success{% elif p.status == 'cancelled' %}danger{% elif p.status == 'in_progress' %}warning{% else %}info{% endif %}">{{ p.get_status_display }}</span></td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="7" class="text-center text-muted">No procedures scheduled.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

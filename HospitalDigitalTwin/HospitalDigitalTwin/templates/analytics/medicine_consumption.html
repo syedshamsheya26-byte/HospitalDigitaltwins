@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Medicine Consumption Report - Hospital Digital Twin{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-capsule"></i> Medicine Consumption Report</h2>
+    <a href="{% url 'analytics:analytics_dashboard' %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i> Back to Analytics</a>
+</div>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label">Year</label>
+                <select name="year" class="form-select">
+                    {% for y in years %}
+                    <option value="{{ y }}" {% if y == selected_year %}selected{% endif %}>{{ y }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Medicine</label>
+                <select name="medicine" class="form-select">
+                    <option value="">All Medicines</option>
+                    {% for med in medicines %}
+                    <option value="{{ med }}" {% if med == selected_medicine %}selected{% endif %}>{{ med }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3 d-flex align-items-end">
+                <button type="submit" class="btn btn-outline-primary w-100"><i class="bi bi-funnel"></i> Filter</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <canvas id="consumptionChart" height="100"></canvas>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Medicine</th>
+                        <th>Quantity Consumed</th>
+                        <th>Total Cost</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in consumption %}
+                    <tr>
+                        <td>{{ item.medicine_name }}</td>
+                        <td>{{ item.quantity_consumed }}</td>
+                        <td>${{ item.total_cost|floatformat:2 }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="3" class="text-center text-muted py-4">
+                            <i class="bi bi-inbox" style="font-size: 2rem;"></i>
+                            <p class="mt-2 mb-0">No consumption data found for {{ selected_year }}.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+const ctx = document.getElementById('consumptionChart').getContext('2d');
+new Chart(ctx, {
+    type: 'bar',
+    data: {
+        labels: [{% for item in consumption %}'{{ item.medicine_name }}'{% if not forloop.last %},{% endif %}{% endfor %}],
+        datasets: [
+            {
+                label: 'Quantity Consumed',
+                data: [{% for item in consumption %}{{ item.quantity_consumed }}{% if not forloop.last %},{% endif %}{% endfor %}],
+                backgroundColor: 'rgba(13,110,253,0.7)',
+                borderColor: '#0d6efd',
+                borderWidth: 1,
+                order: 2
+            },
+            {
+                label: 'Total Cost ($)',
+                data: [{% for item in consumption %}{{ item.total_cost }}{% if not forloop.last %},{% endif %}{% endfor %}],
+                type: 'line',
+                borderColor: '#198754',
+                backgroundColor: 'rgba(25,135,84,0.1)',
+                fill: true,
+                tension: 0.3,
+                yAxisID: 'y1',
+                order: 1
+            }
+        ]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: true, position: 'top' } },
+        scales: {
+            y: { beginAtZero: true, position: 'left' },
+            y1: { beginAtZero: true, position: 'right', grid: { drawOnChartArea: false } }
+        }
+    }
+});
+</script>
+{% endblock %}

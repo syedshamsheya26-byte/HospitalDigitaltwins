@@ -1,132 +1,49 @@
 {% extends 'base.html' %}
 {% load static %}
 {% block title %}Staff Dashboard - Hospital Digital Twin{% endblock %}
+{% block page_title %}Staff Dashboard{% endblock %}
+
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <div>
-        <h2><i class="bi bi-person-workspace"></i> Staff Dashboard</h2>
-        <p class="text-muted mb-0">Welcome, {{ user.first_name }} {{ user.last_name }}</p>
+<div class="stats-grid animate-up">
+  <div class="stat-card">
+    <div class="stat-top">
+      <div class="stat-icon blue"><i class="bi bi-person-plus-fill"></i></div>
     </div>
+    <div class="stat-label">Today's Admissions</div>
+    <div class="stat-value">{{ today_admissions|default:0 }}</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-top">
+      <div class="stat-icon teal"><i class="bi bi-person-check-fill"></i></div>
+    </div>
+    <div class="stat-label">Today's Discharges</div>
+    <div class="stat-value">{{ today_discharges|default:0 }}</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-top">
+      <div class="stat-icon orange"><i class="bi bi-list-task"></i></div>
+    </div>
+    <div class="stat-label">Pending Tasks</div>
+    <div class="stat-value">{{ pending_tasks.pending_admissions|default:0 }}</div>
+  </div>
 </div>
 
-<div class="row g-3 mb-4">
-    <div class="col-md-3">
-        <div class="card border-primary border-start border-4 shadow-sm">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <h6 class="text-muted">Today's Admissions</h6>
-                        <h3 class="mb-0">{{ today_admissions }}</h3>
-                    </div>
-                    <i class="bi bi-person-plus text-primary" style="font-size: 2rem;"></i>
-                </div>
-            </div>
-        </div>
+<div class="card animate-up">
+  <div class="card-header">
+    <h5><i class="bi bi-list-check"></i> Pending Tasks</h5>
+  </div>
+  <div class="card-body p-0">
+    <div class="table-wrapper">
+      <table>
+        <thead><tr><th>Task</th><th>Count</th></tr></thead>
+        <tbody>
+          <tr><td>Pending Admissions</td><td><span class="badge badge-warning">{{ pending_tasks.pending_admissions|default:0 }}</span></td></tr>
+          <tr><td>Pending Appointments</td><td><span class="badge badge-primary">{{ pending_tasks.pending_appointments|default:0 }}</span></td></tr>
+          <tr><td>Low Stock Items</td><td><span class="badge badge-error">{{ pending_tasks.low_stock_count|default:0 }}</span></td></tr>
+          <tr><td>Beds in Maintenance</td><td><span class="badge badge-muted">{{ pending_tasks.beds_in_maintenance|default:0 }}</span></td></tr>
+        </tbody>
+      </table>
     </div>
-    <div class="col-md-3">
-        <div class="card border-success border-start border-4 shadow-sm">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <h6 class="text-muted">Today's Discharges</h6>
-                        <h3 class="mb-0 text-success">{{ today_discharges }}</h3>
-                    </div>
-                    <i class="bi bi-person-check text-success" style="font-size: 2rem;"></i>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card border-warning border-start border-4 shadow-sm">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <h6 class="text-muted">Pending Admissions</h6>
-                        <h3 class="mb-0 text-warning">{{ pending_admissions }}</h3>
-                    </div>
-                    <i class="bi bi-clock-history text-warning" style="font-size: 2rem;"></i>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card border-info border-start border-4 shadow-sm">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <h6 class="text-muted">Available Beds</h6>
-                        <h3 class="mb-0 text-info">{{ available_beds }}</h3>
-                    </div>
-                    <i class="bi bi-bed text-info" style="font-size: 2rem;"></i>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="row g-3 mb-4">
-    <div class="col-md-6 col-lg-3">
-        <div class="card shadow-sm h-100">
-            <div class="card-body text-center">
-                <div class="mb-3">
-                    <i class="bi bi-person-plus text-primary" style="font-size: 2.5rem;"></i>
-                </div>
-                <h5>Pending Admissions</h5>
-                <p class="text-muted small">{{ pending_admissions }} patients waiting</p>
-                <a href="{% url 'patients:patient_list' %}" class="btn btn-sm btn-outline-primary">View Patients</a>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-6 col-lg-3">
-        <div class="card shadow-sm h-100">
-            <div class="card-body text-center">
-                <div class="mb-3">
-                    <i class="bi bi-calendar-check text-success" style="font-size: 2.5rem;"></i>
-                </div>
-                <h5>Today's Appointments</h5>
-                <p class="text-muted small">{{ today_appointments }} appointments scheduled</p>
-                <a href="{% url 'appointments:appointment_list' %}" class="btn btn-sm btn-outline-success">View Appointments</a>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-6 col-lg-3">
-        <div class="card shadow-sm h-100">
-            <div class="card-body text-center">
-                <div class="mb-3">
-                    <i class="bi bi-exclamation-triangle text-warning" style="font-size: 2.5rem;"></i>
-                </div>
-                <h5>Low Stock Items</h5>
-                <p class="text-muted small">{{ low_stock_items }} items below threshold</p>
-                <a href="{% url 'inventory:low_stock_alerts' %}" class="btn btn-sm btn-outline-warning">View Alerts</a>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-6 col-lg-3">
-        <div class="card shadow-sm h-100">
-            <div class="card-body text-center">
-                <div class="mb-3">
-                    <i class="bi bi-tools text-danger" style="font-size: 2.5rem;"></i>
-                </div>
-                <h5>Beds in Maintenance</h5>
-                <p class="text-muted small">{{ beds_in_maintenance }} beds under maintenance</p>
-                <a href="{% url 'beds:bed_list' %}" class="btn btn-sm btn-outline-danger">View Beds</a>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="row g-3">
-    <div class="col-12">
-        <div class="card shadow-sm">
-            <div class="card-body">
-                <h5 class="mb-3"><i class="bi bi-lightning"></i> Quick Actions</h5>
-                <a href="{% url 'patients:patient_list' %}" class="btn btn-primary me-2 mb-2"><i class="bi bi-people"></i> Manage Patients</a>
-                <a href="{% url 'appointments:appointment_create' %}" class="btn btn-success me-2 mb-2"><i class="bi bi-plus-circle"></i> Book Appointment</a>
-                <a href="{% url 'beds:occupancy_dashboard' %}" class="btn btn-info me-2 mb-2"><i class="bi bi-bed"></i> Occupancy Dashboard</a>
-                <a href="{% url 'inventory:inventory_dashboard' %}" class="btn btn-warning me-2 mb-2"><i class="bi bi-capsule"></i> Inventory Dashboard</a>
-                <a href="{% url 'beds:assign_bed' %}" class="btn btn-secondary me-2 mb-2"><i class="bi bi-bed"></i> Assign Bed</a>
-            </div>
-        </div>
-    </div>
+  </div>
 </div>
 {% endblock %}

@@ -1,0 +1,245 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Disease Risk Assessment - Hospital Digital Twin{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2><i class="bi bi-shield-exclamation"></i> AI Disease Risk Assessment</h2>
+        <p class="text-muted mb-0">Predict risk levels for Diabetes, Heart Disease, Hypertension, and Kidney Disease using ML</p>
+    </div>
+    <a href="{% url 'dashboard:home' %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i> Back to Dashboard</a>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-md-6">
+        <div class="card border-primary border-start border-4 shadow-sm">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="text-muted">Total Predictions</h6>
+                        <h3 class="mb-0 text-primary">{{ total_predictions }}</h3>
+                    </div>
+                    <i class="bi bi-shield-check text-primary" style="font-size: 2rem;"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card border-danger border-start border-4 shadow-sm">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="text-muted">High Risk Patients</h6>
+                        <h3 class="mb-0 text-danger">{{ high_risk_count }}</h3>
+                    </div>
+                    <i class="bi bi-exclamation-triangle text-danger" style="font-size: 2rem;"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-md-5">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="bi bi-person-plus"></i> Patient Details</h5>
+            </div>
+            <div class="card-body">
+                <form method="post" id="riskForm">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label">Patient Name</label>
+                        {{ form.patient_name }}
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Age</label>
+                            {{ form.age }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Gender</label>
+                            {{ form.gender }}
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Blood Pressure (mmHg)</label>
+                            {{ form.blood_pressure }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Sugar Level (mg/dL)</label>
+                            {{ form.sugar_level }}
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">BMI</label>
+                            {{ form.bmi }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Cholesterol (mg/dL)</label>
+                            {{ form.cholesterol }}
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Heart Rate (bpm)</label>
+                        {{ form.heart_rate }}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Disease Type</label>
+                        {{ form.disease_type }}
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100 py-2" id="predictBtn">
+                        <i class="bi bi-shield-check"></i> Predict Risk
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-7">
+        {% if prediction %}
+        <div class="card shadow-sm mb-3">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-clipboard-data"></i> Prediction Result</h5>
+                <span class="badge bg-{% if prediction.risk_level == 'high' %}danger{% elif prediction.risk_level == 'medium' %}warning{% else %}success{% endif %} fs-6">
+                    {{ prediction.get_risk_level_display|upper }}
+                </span>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <strong>Patient:</strong> {{ prediction.patient_name }}
+                    </div>
+                    <div class="col-md-3">
+                        <strong>Age:</strong> {{ prediction.age }}
+                    </div>
+                    <div class="col-md-3">
+                        <strong>Gender:</strong> {{ prediction.get_gender_display }}
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <strong>Risk Score:</strong>
+                    <div class="progress" style="height: 25px;">
+                        <div class="progress-bar bg-{% if prediction.risk_score > 70 %}danger{% elif prediction.risk_score > 40 %}warning{% else %}success{% endif %}"
+                             role="progressbar" style="width: {{ prediction.risk_score }}%">
+                            {{ prediction.risk_score|floatformat:1 }}%
+                        </div>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <strong>Confidence:</strong>
+                    <div class="progress" style="height: 20px;">
+                        <div class="progress-bar bg-info" role="progressbar" style="width: {{ prediction.confidence_score }}%">
+                            {{ prediction.confidence_score|floatformat:1 }}%
+                        </div>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <strong>Disease:</strong>
+                        <p class="text-muted">{{ prediction.get_disease_type_display }}</p>
+                    </div>
+                    <div class="col-md-4">
+                        <strong>BP:</strong>
+                        <p class="text-muted">{{ prediction.blood_pressure }} mmHg</p>
+                    </div>
+                    <div class="col-md-4">
+                        <strong>Sugar:</strong>
+                        <p class="text-muted">{{ prediction.sugar_level }} mg/dL</p>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-4">
+                        <strong>BMI:</strong>
+                        <p class="text-muted">{{ prediction.bmi }}</p>
+                    </div>
+                    <div class="col-md-4">
+                        <strong>Cholesterol:</strong>
+                        <p class="text-muted">{{ prediction.cholesterol }} mg/dL</p>
+                    </div>
+                    <div class="col-md-4">
+                        <strong>Heart Rate:</strong>
+                        <p class="text-muted">{{ prediction.heart_rate }} bpm</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="bi bi-info-circle text-info"></i> Recommendations</h5>
+            </div>
+            <div class="card-body">
+                <pre style="white-space:pre-wrap;font-family:inherit;margin:0;color:var(--gray-700);background:var(--gray-50);padding:15px;border-radius:8px;">{{ prediction.recommendations }}</pre>
+            </div>
+            <div class="card-footer bg-white text-end">
+                <a href="{% url 'disease_risk:prediction_detail' prediction.pk %}" class="btn btn-sm btn-outline-primary">
+                    <i class="bi bi-eye"></i> View Full Details
+                </a>
+            </div>
+        </div>
+
+        {% else %}
+        <div class="card shadow-sm">
+            <div class="card-body text-center py-5">
+                <i class="bi bi-robot text-muted" style="font-size: 4rem;"></i>
+                <h4 class="mt-3 text-muted">Enter patient details to predict disease risk</h4>
+                <p class="text-muted">Our AI engine uses Random Forest models trained on medical data to assess risk levels for Diabetes, Heart Disease, Hypertension, and Kidney Disease</p>
+                <div class="row mt-4 g-2">
+                    <div class="col-md-3">
+                        <div class="border rounded p-3 text-center">
+                            <i class="bi bi-droplet text-danger" style="font-size: 1.5rem;"></i>
+                            <h6 class="mt-2 mb-0">Diabetes</h6>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="border rounded p-3 text-center">
+                            <i class="bi bi-heart-pulse text-danger" style="font-size: 1.5rem;"></i>
+                            <h6 class="mt-2 mb-0">Heart Disease</h6>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="border rounded p-3 text-center">
+                            <i class="bi bi-activity text-warning" style="font-size: 1.5rem;"></i>
+                            <h6 class="mt-2 mb-0">Hypertension</h6>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="border rounded p-3 text-center">
+                            <i class="bi bi-kidneys text-info" style="font-size: 1.5rem;"></i>
+                            <h6 class="mt-2 mb-0">Kidney Disease</h6>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <div class="row g-2 text-center">
+                        <div class="col-md-3">
+                            <small class="text-muted d-block">Age 20-90</small>
+                        </div>
+                        <div class="col-md-3">
+                            <small class="text-muted d-block">BP 90-180 mmHg</small>
+                        </div>
+                        <div class="col-md-3">
+                            <small class="text-muted d-block">Sugar 70-200 mg/dL</small>
+                        </div>
+                        <div class="col-md-3">
+                            <small class="text-muted d-block">BMI 15-45</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+document.getElementById('riskForm')?.addEventListener('submit', function() {
+    const btn = document.getElementById('predictBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Analyzing...';
+});
+</script>
+{% endblock %}

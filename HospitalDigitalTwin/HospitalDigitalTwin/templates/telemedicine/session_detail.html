@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Session Detail{% endblock %}
+{% block content %}
+<div class="container">
+    <h2 class="mb-4"><i class="bi bi-camera-video text-primary"></i> Telemedicine Session</h2>
+    <div class="card shadow">
+        <div class="card-body">
+            <table class="table">
+                <tr><th style="width:200px">Patient</th><td>{{ session.patient_name }}</td></tr>
+                <tr><th>Doctor</th><td>{{ session.doctor_name }}</td></tr>
+                <tr><th>Date</th><td>{{ session.appointment_date }}</td></tr>
+                <tr><th>Time</th><td>{{ session.appointment_time }}</td></tr>
+                <tr><th>Status</th><td><span class="badge bg-{% if session.status == 'completed' %}success{% elif session.status == 'cancelled' %}danger{% elif session.status == 'in_progress' %}warning{% else %}info{% endif %}">{{ session.get_status_display }}</span></td></tr>
+                {% if session.diagnosis %}<tr><th>Diagnosis</th><td>{{ session.diagnosis }}</td></tr>{% endif %}
+                {% if session.prescription %}<tr><th>Prescription</th><td>{{ session.prescription }}</td></tr>{% endif %}
+                {% if session.notes %}<tr><th>Notes</th><td>{{ session.notes }}</td></tr>{% endif %}
+            </table>
+            <a href="{% url 'telemedicine:session_update' session.pk %}" class="btn btn-primary"><i class="bi bi-pencil"></i> Edit</a>
+            <a href="{% url 'telemedicine:session_list' %}" class="btn btn-secondary">Back</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Staff Dashboard - Hospital Digital Twin{% endblock %}
+{% block page_title %}Staff Dashboard{% endblock %}
+
+{% block content %}
+<div class="stats-grid animate-up">
+  <div class="stat-card">
+    <div class="stat-top">
+      <div class="stat-icon blue"><i class="bi bi-person-plus-fill"></i></div>
+    </div>
+    <div class="stat-label">Today's Admissions</div>
+    <div class="stat-value">{{ today_admissions|default:0 }}</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-top">
+      <div class="stat-icon teal"><i class="bi bi-person-check-fill"></i></div>
+    </div>
+    <div class="stat-label">Today's Discharges</div>
+    <div class="stat-value">{{ today_discharges|default:0 }}</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-top">
+      <div class="stat-icon orange"><i class="bi bi-list-task"></i></div>
+    </div>
+    <div class="stat-label">Pending Tasks</div>
+    <div class="stat-value">{{ pending_tasks.pending_admissions|default:0 }}</div>
+  </div>
+</div>
+
+<div class="card animate-up">
+  <div class="card-header">
+    <h5><i class="bi bi-list-check"></i> Pending Tasks</h5>
+  </div>
+  <div class="card-body p-0">
+    <div class="table-wrapper">
+      <table>
+        <thead><tr><th>Task</th><th>Count</th></tr></thead>
+        <tbody>
+          <tr><td>Pending Admissions</td><td><span class="badge badge-warning">{{ pending_tasks.pending_admissions|default:0 }}</span></td></tr>
+          <tr><td>Pending Appointments</td><td><span class="badge badge-primary">{{ pending_tasks.pending_appointments|default:0 }}</span></td></tr>
+          <tr><td>Low Stock Items</td><td><span class="badge badge-error">{{ pending_tasks.low_stock_count|default:0 }}</span></td></tr>
+          <tr><td>Beds in Maintenance</td><td><span class="badge badge-muted">{{ pending_tasks.beds_in_maintenance|default:0 }}</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,141 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Risk Prediction Detail - Hospital Digital Twin{% endblock %}
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12 d-flex justify-content-between align-items-center">
+        <div>
+            <h2><i class="bi bi-shield-exclamation"></i> Risk Prediction Detail</h2>
+            <p class="text-muted">Detailed view of patient risk assessment</p>
+        </div>
+        <a href="{% url 'predictions:risk_prediction_list' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Back to List
+        </a>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-md-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="bi bi-person"></i> Patient Information</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-borderless mb-0">
+                    <tr>
+                        <td class="fw-bold" style="width: 140px;">Patient ID</td>
+                        <td>{{ prediction.patient_id }}</td>
+                    </tr>
+                    <tr>
+                        <td class="fw-bold">Name</td>
+                        <td>{{ prediction.patient_name }}</td>
+                    </tr>
+                    <tr>
+                        <td class="fw-bold">Age</td>
+                        <td>{{ prediction.age }}</td>
+                    </tr>
+                    <tr>
+                        <td class="fw-bold">Gender</td>
+                        <td>{{ prediction.gender }}</td>
+                    </tr>
+                    <tr>
+                        <td class="fw-bold">Diagnosis</td>
+                        <td>{{ prediction.diagnosis }}</td>
+                    </tr>
+                    <tr>
+                        <td class="fw-bold">Predicted Condition</td>
+                        <td><span class="badge bg-info text-dark fs-6">{{ prediction.predicted_condition }}</span></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-clipboard-data"></i> Risk Score</h5>
+                <span class="badge bg-{% if prediction.risk_level == 'critical' %}dark{% elif prediction.risk_level == 'high' %}danger{% elif prediction.risk_level == 'medium' %}warning{% else %}success{% endif %} fs-6">
+                    {{ prediction.risk_level|upper }}
+                </span>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label class="fw-bold mb-2">Risk Score: {{ prediction.risk_score|floatformat:1 }}%</label>
+                    <div class="progress" style="height: 30px;">
+                        <div class="progress-bar bg-{% if prediction.risk_score > 70 %}danger{% elif prediction.risk_score > 40 %}warning{% else %}success{% endif %}" 
+                             role="progressbar" style="width: {{ prediction.risk_score }}%">
+                            {{ prediction.risk_score|floatformat:1 }}%
+                        </div>
+                    </div>
+                </div>
+                <div class="small text-muted">
+                    Assessed on {{ prediction.created_at|date:"d M Y H:i" }}
+                    {% if prediction.created_by %}
+                    by {{ prediction.created_by.get_full_name|default:prediction.created_by.username }}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="bi bi-info-circle text-info"></i> Risk Explanation</h5>
+            </div>
+            <div class="card-body">
+                <p>{{ prediction.explanation }}</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="bi bi-shield-plus text-success"></i> Prevention Tips</h5>
+            </div>
+            <div class="card-body">
+                {{ prediction.prevention_tips|linebreaks }}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="bi bi-basket text-warning"></i> Food & Nutrition History</h5>
+            </div>
+            <div class="card-body">
+                {% if prediction.food_history_notes %}
+                <p>{{ prediction.food_history_notes }}</p>
+                {% else %}
+                <p class="text-muted">No food history recorded</p>
+                {% endif %}
+                <hr>
+                <h6>Recommendations:</h6>
+                <p>{{ prediction.recommendations|linebreaksbr }}</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="bi bi-journal-text"></i> Full Recommendations</h5>
+            </div>
+            <div class="card-body">
+                <pre style="white-space: pre-wrap; font-family: inherit; margin: 0;">{{ prediction.recommendations }}</pre>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-3">
+    <div class="col-12">
+        <a href="{% url 'predictions:risk_prediction_list' %}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Risk Predictions
+        </a>
+    </div>
+</div>
+{% endblock %}

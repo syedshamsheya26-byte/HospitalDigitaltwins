@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Disease Risk Results - Hospital Digital Twin{% endblock %}
+{% block page_title %}Risk Assessment Results{% endblock %}
+
+{% block content %}
+<div class="card animate-up">
+  <div class="card-header">
+    <h5><i class="bi bi-shield-fill-check"></i> Your Risk Assessments</h5>
+  </div>
+  <div class="card-body p-0">
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr><th>Disease</th><th>Risk Level</th><th>Score</th><th>Date</th></tr>
+        </thead>
+        <tbody>
+          {% for risk in risks %}
+          <tr>
+            <td>{{ risk.disease|title }}</td>
+            <td><span class="badge risk-{{ risk.level }}">{{ risk.level|title }}</span></td>
+            <td>{{ risk.score }}%</td>
+            <td>{{ risk.date }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="4" class="text-center" style="padding: 48px; color: var(--text-muted);">
+            <i class="bi bi-shield-check" style="font-size: 3rem; display: block; margin-bottom: 12px; opacity: 0.4;"></i>
+            <p>No risk assessments completed yet.</p>
+            <p style="font-size: 13px;">Use the Disease Risk tool to assess your health risks.</p>
+          </td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

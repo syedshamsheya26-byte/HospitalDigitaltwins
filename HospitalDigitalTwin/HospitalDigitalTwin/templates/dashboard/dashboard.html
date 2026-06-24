@@ -1,0 +1,884 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard - Hospital Digital Twin</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+
+  <!-- Bootstrap 5 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- Font Awesome 6 -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+  <!-- Custom Styles -->
+  <link href="{% static 'css/dashboard_new.css' %}" rel="stylesheet">
+</head>
+<body>
+
+  <!-- ====================================================================
+       SIDEBAR BACKDROP (mobile)
+       ==================================================================== -->
+  <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+  <!-- ====================================================================
+       SIDEBAR
+       ==================================================================== -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-icon">
+        <i class="fas fa-hospital-alt"></i>
+      </div>
+      <span class="brand-text">Hospital DT</span>
+      <button class="sidebar-toggle" id="sidebarToggle" title="Toggle sidebar">
+        <i class="fas fa-chevron-left"></i>
+      </button>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section">Main</div>
+      <a href="{% url 'dashboard:home' %}" class="nav-item active">
+        <span class="nav-icon"><i class="fas fa-th-large"></i></span>
+        <span class="nav-label">Dashboard</span>
+      </a>
+      <a href="{% url 'patients:patient_list' %}" class="nav-item">
+        <span class="nav-icon"><i class="fas fa-users"></i></span>
+        <span class="nav-label">Patients</span>
+      </a>
+       <a href="{% url 'disease_risk:risk_assessment' %}" class="nav-item">
+         <span class="nav-icon"><i class="fas fa-shield-alt"></i></span>
+         <span class="nav-label">Disease Risk</span>
+       </a>
+      <a href="{% url 'appointments:appointment_list' %}" class="nav-item">
+        <span class="nav-icon"><i class="fas fa-calendar-check"></i></span>
+        <span class="nav-label">Appointments</span>
+      </a>
+      <a href="{% url 'beds:bed_list' %}" class="nav-item">
+        <span class="nav-icon"><i class="fas fa-bed"></i></span>
+        <span class="nav-label">Beds</span>
+      </a>
+
+      <div class="nav-section">Operations</div>
+      <a href="{% url 'inventory:inventory_dashboard' %}" class="nav-item">
+        <span class="nav-icon"><i class="fas fa-pills"></i></span>
+        <span class="nav-label">Inventory</span>
+      </a>
+      <a href="{% url 'analytics:analytics_dashboard' %}" class="nav-item">
+        <span class="nav-icon"><i class="fas fa-chart-line"></i></span>
+        <span class="nav-label">Analytics</span>
+      </a>
+      <a href="{% url 'predictions:prediction_dashboard' %}" class="nav-item">
+        <span class="nav-icon"><i class="fas fa-robot"></i></span>
+        <span class="nav-label">AI Predictions</span>
+      </a>
+      <a href="{% url 'reports:report_list' %}" class="nav-item">
+        <span class="nav-icon"><i class="fas fa-file-alt"></i></span>
+        <span class="nav-label">Reports</span>
+      </a>
+
+      <div class="nav-section">System</div>
+      <a href="#" class="nav-item">
+        <span class="nav-icon"><i class="fas fa-cog"></i></span>
+        <span class="nav-label">Settings</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="user-info">
+        <div class="user-avatar">{{ user.first_name|first|default:"A" }}{{ user.last_name|first|default:"U" }}</div>
+        <div class="user-details">
+          <div class="user-name">{{ user.first_name|default:"Admin" }} {{ user.last_name|default:"User" }}</div>
+          <div class="user-role">Hospital Administrator</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ====================================================================
+       MAIN CONTENT
+       ==================================================================== -->
+  <div class="main-content" id="mainContent">
+
+    <!-- ==================================================================
+         TOP NAVBAR
+         ================================================================== -->
+    <header class="top-navbar" id="topNavbar">
+      <!-- Mobile sidebar toggle -->
+      <button class="nav-btn d-md-none" id="mobileSidebarToggle" style="width:36px;height:36px;font-size:14px;">
+        <i class="fas fa-bars"></i>
+      </button>
+
+      <!-- Search -->
+      <div class="search-box">
+        <i class="fas fa-search search-icon"></i>
+        <input type="text" placeholder="Search dashboard... (Ctrl+K)" aria-label="Search">
+      </div>
+
+      <!-- Nav actions -->
+      <div class="nav-actions">
+        <!-- Live date/time -->
+        <div class="datetime-display">
+          <span class="date-text" id="liveDate"></span>
+          <span class="time-text" id="liveTime"></span>
+        </div>
+
+        <!-- Dark mode toggle -->
+        <button class="dark-mode-toggle" id="darkModeToggle" title="Toggle dark mode">
+          <span class="toggle-knob">&#x263E;</span>
+        </button>
+
+        <!-- Notifications -->
+        <div class="position-relative">
+          <button class="nav-btn" id="notifBtn" title="Notifications">
+            <i class="fas fa-bell"></i>
+            <span class="notification-dot"></span>
+          </button>
+          <div class="notif-dropdown" id="notifDropdown">
+            <div class="notif-header">
+              <h6>Notifications</h6>
+              <span class="notif-mark-read">Mark all read</span>
+            </div>
+            <div class="notif-list">
+              <div class="notif-item unread">
+                <div class="notif-item-icon red"><i class="fas fa-exclamation"></i></div>
+                <div class="notif-item-content">
+                  <div class="notif-item-title">Critical Alert</div>
+                  <div class="notif-item-desc">ICU bed occupancy crossed 85%</div>
+                  <div class="notif-item-time">2 min ago</div>
+                </div>
+              </div>
+              <div class="notif-item unread">
+                <div class="notif-item-icon blue"><i class="fas fa-robot"></i></div>
+                <div class="notif-item-content">
+                  <div class="notif-item-title">AI Prediction Complete</div>
+                  <div class="notif-item-desc">Bed occupancy prediction for next week</div>
+                  <div class="notif-item-time">15 min ago</div>
+                </div>
+              </div>
+              <div class="notif-item">
+                <div class="notif-item-icon green"><i class="fas fa-check"></i></div>
+                <div class="notif-item-content">
+                  <div class="notif-item-title">Patient Discharged</div>
+                  <div class="notif-item-desc">John Doe discharged from General Ward</div>
+                  <div class="notif-item-time">1 hour ago</div>
+                </div>
+              </div>
+              <div class="notif-item">
+                <div class="notif-item-icon orange"><i class="fas fa-truck"></i></div>
+                <div class="notif-item-content">
+                  <div class="notif-item-title">Inventory Restocked</div>
+                  <div class="notif-item-desc">Pharmacy inventory has been restocked</div>
+                  <div class="notif-item-time">3 hours ago</div>
+                </div>
+              </div>
+            </div>
+            <div class="notif-footer">
+              <a href="#">View all notifications</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Settings -->
+        <button class="nav-btn" title="Settings">
+          <i class="fas fa-cog"></i>
+        </button>
+
+        <!-- Profile -->
+        <div class="position-relative">
+          <div class="profile-avatar" id="profileBtn" title="Profile">
+            {{ user.first_name|first|default:"A" }}{{ user.last_name|first|default:"U" }}
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- ==================================================================
+         PAGE CONTENT
+         ================================================================== -->
+    <div class="page-content">
+
+      <!-- ================================================================
+           3. HERO SECTION
+           ================================================================ -->
+      <section class="hero-section scroll-animate">
+        <div class="hero-grid">
+          <div class="hero-content">
+            <div class="hero-badge">
+              <span class="status-dot"></span>
+              System Online &bull; Real-time
+            </div>
+            <h1>Hospital Digital Twin</h1>
+            <p class="hero-subtitle">Real-time hospital monitoring, AI analytics and predictive healthcare management platform.</p>
+          </div>
+          <div class="health-score">
+            <span class="score-label">Hospital Health Score</span>
+            <div class="circular-progress">
+              <svg viewBox="0 0 110 110">
+                <circle class="progress-bg" cx="55" cy="55" r="50"/>
+                <circle class="progress-fill" data-score="92" cx="55" cy="55" r="50"/>
+              </svg>
+              <div class="progress-text">
+                <span class="score-value" id="healthScoreValue">0</span>
+                <span class="score-unit">/ 100</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================================================================
+           4. STATISTICS CARDS
+           ================================================================ -->
+      <section class="stat-cards-grid scroll-animate">
+        <div class="stat-card gradient-blue">
+          <div class="card-header-part">
+            <div class="card-icon blue"><i class="fas fa-users"></i></div>
+            <span class="card-trend up"><i class="fas fa-arrow-up"></i> 12%</span>
+          </div>
+          <div class="card-label">Total Patients</div>
+          <div class="card-value" data-target="{{ total_patients|default:380 }}" data-prefix="">0</div>
+          <div class="card-footer-text">+24 this week</div>
+        </div>
+
+        <div class="stat-card gradient-cyan">
+          <div class="card-header-part">
+            <div class="card-icon cyan"><i class="fas fa-bed"></i></div>
+            <span class="card-trend down"><i class="fas fa-arrow-down"></i> 5%</span>
+          </div>
+          <div class="card-label">Available Beds</div>
+          <div class="card-value" data-target="{{ available_beds|default:48 }}" data-suffix="/{{ total_beds|default:200 }}">0</div>
+          <div class="card-footer-text">ICU: {{ icu_beds_available|default:8 }} | General: {{ general_beds_available|default:30 }}</div>
+        </div>
+
+        <div class="stat-card gradient-teal">
+          <div class="card-header-part">
+            <div class="card-icon teal"><i class="fas fa-shield-alt"></i></div>
+            <span class="card-trend up"><i class="fas fa-arrow-up"></i> 24%</span>
+          </div>
+          <div class="card-label">AI Risk Predictions</div>
+          <div class="card-value" data-target="{{ total_disease_predictions|default:0 }}">0</div>
+          <div class="card-footer-text">{{ high_risk_count|default:0 }} high risk patients</div>
+        </div>
+
+        <div class="stat-card gradient-purple">
+          <div class="card-header-part">
+            <div class="card-icon purple"><i class="fas fa-calendar-check"></i></div>
+            <span class="card-trend up"><i class="fas fa-arrow-up"></i> 18%</span>
+          </div>
+          <div class="card-label">Today's Appointments</div>
+          <div class="card-value" data-target="{{ today_appointments|default:42 }}">0</div>
+          <div class="card-footer-text">{{ pending_appointments|default:18 }} pending</div>
+        </div>
+
+        <div class="stat-card gradient-orange">
+          <div class="card-header-part">
+            <div class="card-icon orange"><i class="fas fa-ambulance"></i></div>
+            <span class="card-trend down"><i class="fas fa-arrow-down"></i> 3%</span>
+          </div>
+          <div class="card-label">Emergency Cases</div>
+          <div class="card-value" data-target="{{ emergency_count|default:18 }}">0</div>
+          <div class="card-footer-text">5 critical cases</div>
+        </div>
+
+        <div class="stat-card gradient-red">
+          <div class="card-header-part">
+            <div class="card-icon red"><i class="fas fa-exclamation-triangle"></i></div>
+            <span class="card-trend neutral"><i class="fas fa-minus"></i> Stable</span>
+          </div>
+          <div class="card-label">Critical Alerts</div>
+          <div class="card-value" data-target="{{ low_stock_medicines|default:8 }}">0</div>
+          <div class="card-footer-text">Low stock: {{ low_stock_medicines|default:6 }} | Expired: {{ expired_medicines|default:2 }}</div>
+        </div>
+      </section>
+
+      <!-- ================================================================
+           5. AI INSIGHTS SECTION
+           ================================================================ -->
+      <section class="ai-insights scroll-animate">
+        <div class="ai-header">
+          <div class="ai-icon"><i class="fas fa-brain"></i></div>
+          <div class="ai-title">AI Predictive Insights</div>
+          <div class="ai-badge">
+            <span class="pulse-dot"></span>
+            Live Predictions Active
+          </div>
+        </div>
+        <div class="ai-insights-grid">
+          <div class="ai-insight-item">
+            <div class="insight-label">Bed Occupancy Risk</div>
+            <div class="insight-value" style="color:var(--warning);">High</div>
+            <div class="insight-status warning"><i class="fas fa-exclamation-circle"></i> Requires attention</div>
+          </div>
+          <div class="ai-insight-item">
+            <div class="insight-label">Emergency Load</div>
+            <div class="insight-value" style="color:var(--warning);">Medium</div>
+            <div class="insight-status warning"><i class="fas fa-clock"></i> Moderate load</div>
+          </div>
+          <div class="ai-insight-item">
+            <div class="insight-label">ICU Capacity</div>
+            <div class="insight-value" style="color:var(--danger);">82%</div>
+            <div class="insight-status danger"><i class="fas fa-exclamation-triangle"></i> Near threshold</div>
+          </div>
+          <div class="ai-insight-item">
+            <div class="insight-label">Predicted Admissions</div>
+            <div class="insight-value" style="color:var(--primary);">18</div>
+            <div class="insight-status good"><i class="fas fa-calendar-day"></i> Next 24 hours</div>
+          </div>
+          <div class="ai-insight-item">
+            <div class="insight-label">Staff Availability</div>
+            <div class="insight-value" style="color:var(--success);">Good</div>
+            <div class="insight-status good"><i class="fas fa-check-circle"></i> Fully staffed</div>
+          </div>
+          <div class="ai-insight-item">
+            <div class="insight-label">System Health</div>
+            <div class="insight-value" style="color:var(--success);">Excellent</div>
+            <div class="insight-status good"><i class="fas fa-shield-alt"></i> All systems nominal</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================================================================
+           6. CHARTS
+           ================================================================ -->
+      <section class="charts-grid scroll-animate">
+        <!-- Bed Occupancy Trend -->
+        <div class="chart-card">
+          <div class="chart-header">
+            <div class="chart-title"><i class="fas fa-chart-area"></i> Bed Occupancy Trend</div>
+            <div class="chart-actions">
+              <button class="chart-btn active">Week</button>
+              <button class="chart-btn">Month</button>
+              <button class="chart-btn">Year</button>
+            </div>
+          </div>
+          <div class="chart-body"><canvas id="bedOccupancyChart"></canvas></div>
+        </div>
+
+        <!-- Weekly Patient Admissions -->
+        <div class="chart-card">
+          <div class="chart-header">
+            <div class="chart-title"><i class="fas fa-chart-bar"></i> Weekly Admissions</div>
+          </div>
+          <div class="chart-body"><canvas id="admissionsChart"></canvas></div>
+        </div>
+
+        <!-- Department Distribution + Appointment Analytics in second row -->
+        <div class="chart-card">
+          <div class="chart-header">
+            <div class="chart-title"><i class="fas fa-chart-pie"></i> Department Distribution</div>
+          </div>
+          <div class="chart-body"><canvas id="departmentChart"></canvas></div>
+        </div>
+
+        <div class="chart-card">
+          <div class="chart-header">
+            <div class="chart-title"><i class="fas fa-chart-line"></i> Appointment Analytics</div>
+          </div>
+          <div class="chart-body"><canvas id="appointmentChart"></canvas></div>
+        </div>
+
+        <!-- Emergency Cases Trend (full width) -->
+        <div class="chart-card full-width">
+          <div class="chart-header">
+            <div class="chart-title"><i class="fas fa-ambulance"></i> Emergency Cases Trend</div>
+          </div>
+          <div class="chart-body"><canvas id="emergencyChart"></canvas></div>
+        </div>
+      </section>
+
+      <!-- ================================================================
+           7. DISEASE RISK PREDICTIONS
+           ================================================================ -->
+      <section class="quick-actions scroll-animate" style="margin-top: 24px;">
+        <div class="qa-header">
+          <div class="qa-title"><i class="fas fa-shield-alt" style="color:var(--primary);margin-right:8px;"></i> Recent Disease Risk Predictions</div>
+          <a href="{% url 'disease_risk:risk_assessment' %}" style="font-size:13px;color:var(--primary);font-weight:500;">
+            New Assessment <i class="fas fa-arrow-right"></i>
+          </a>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;padding:16px;">
+          {% for pred in recent_disease_predictions %}
+          <div style="background:var(--card-bg);border-radius:12px;padding:16px;border:1px solid var(--border);">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+              <h6 style="margin:0;font-weight:600;">{{ pred.patient_name }}</h6>
+              <span style="padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;
+                {% if pred.risk_level == 'high' %}background:var(--danger-bg);color:var(--danger);
+                {% elif pred.risk_level == 'medium' %}background:var(--warning-bg);color:var(--warning);
+                {% else %}background:var(--success-bg);color:var(--success);{% endif %}">
+                {{ pred.risk_level|upper }}
+              </span>
+            </div>
+            <div style="font-size:13px;color:var(--text-muted);margin-bottom:4px;">
+              <i class="fas fa-heartbeat" style="width:16px;"></i> {{ pred.disease_type|default:"General" }}
+            </div>
+            <div style="font-size:13px;color:var(--text-muted);">
+              <i class="fas fa-percentage" style="width:16px;"></i> Confidence: {{ pred.confidence_score|floatformat:1 }}%
+            </div>
+            <div style="font-size:12px;color:var(--text-muted);margin-top:6px;">
+              <i class="fas fa-calendar"></i> {{ pred.created_at|date:"d M Y"|default:"-" }}
+            </div>
+          </div>
+          {% empty %}
+          <div style="text-align:center;padding:20px;color:var(--text-muted);grid-column:1/-1;">
+            <i class="fas fa-shield-alt" style="font-size:2rem;"></i>
+            <p style="margin-top:8px;">No risk predictions yet. Run your first assessment!</p>
+            <a href="{% url 'disease_risk:risk_assessment' %}" class="btn btn-primary btn-sm">Start Assessment</a>
+          </div>
+          {% endfor %}
+        </div>
+      </section>
+
+      <!-- ================================================================
+           8. QUICK ACTION BUTTONS
+           ================================================================ -->
+      <section class="quick-actions scroll-animate">
+        <div class="qa-header">
+          <div class="qa-title"><i class="fas fa-bolt" style="color:var(--primary);margin-right:8px;"></i> Quick Actions</div>
+        </div>
+        <div class="quick-actions-grid">
+          <a href="{% url 'patients:patient_create' %}" class="quick-action-btn">
+            <span class="qa-icon blue"><i class="fas fa-plus"></i></span>
+            <span class="qa-label">Add Patient</span>
+          </a>
+          <a href="{% url 'disease_risk:risk_assessment' %}" class="quick-action-btn">
+            <span class="qa-icon purple"><i class="fas fa-shield-alt"></i></span>
+            <span class="qa-label">Risk Assessment</span>
+          </a>
+          <a href="{% url 'appointments:appointment_create' %}" class="quick-action-btn">
+            <span class="qa-icon teal"><i class="fas fa-plus"></i></span>
+            <span class="qa-label">Book Appointment</span>
+          </a>
+          <a href="{% url 'beds:bed_create' %}" class="quick-action-btn">
+            <span class="qa-icon orange"><i class="fas fa-plus"></i></span>
+            <span class="qa-label">Allocate Bed</span>
+          </a>
+          <a href="{% url 'reports:report_list' %}" class="quick-action-btn">
+            <span class="qa-icon red"><i class="fas fa-file"></i></span>
+            <span class="qa-label">Generate Report</span>
+          </a>
+          <a href="{% url 'predictions:prediction_dashboard' %}" class="quick-action-btn">
+            <span class="qa-icon cyan"><i class="fas fa-robot"></i></span>
+            <span class="qa-label">Run AI Prediction</span>
+          </a>
+        </div>
+      </section>
+
+      <!-- ================================================================
+           8. LIVE STATUS WIDGETS
+           ================================================================ -->
+      <section class="live-status-grid scroll-animate">
+        <span class="live-status-item"><span class="status-indicator online"></span> System Online</span>
+        <span class="live-status-item"><span class="status-indicator online"></span> AI Engine Active</span>
+        <span class="live-status-item"><span class="status-indicator online"></span> Database Connected</span>
+        <span class="live-status-item"><span class="status-indicator online"></span> Prediction Service Running</span>
+        <span class="live-status-item"><span class="status-indicator online"></span> Backup Synced</span>
+        <span class="live-status-item"><span class="status-indicator online"></span> API Gateway Healthy</span>
+      </section>
+
+      <!-- ================================================================
+           9. TABLES
+           ================================================================ -->
+      <section class="tables-grid scroll-animate">
+        <!-- Recent Patients -->
+        <div class="table-card">
+          <div class="table-card-header">
+            <div class="table-title"><i class="fas fa-user-injured"></i> Recent Patients</div>
+            <div class="table-actions">
+              <input type="text" class="table-search" placeholder="Search patients...">
+            </div>
+          </div>
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>ID <span class="sort-icon"><i class="fas fa-sort"></i></span></th>
+                  <th>Name <span class="sort-icon"><i class="fas fa-sort"></i></span></th>
+                  <th>Gender <span class="sort-icon"><i class="fas fa-sort"></i></span></th>
+                  <th>Status <span class="sort-icon"><i class="fas fa-sort"></i></span></th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for p in recent_patients %}
+                <tr>
+                  <td><strong>{{ p.patient_id|default:"P-00" }}{{ forloop.counter }}</strong></td>
+                  <td>{{ p.first_name|default:"Sarah" }} {{ p.last_name|default:"Johnson" }}</td>
+                  <td>{{ p.gender|default:"Female" }}</td>
+                  <td>
+                    <span class="status-badge {{ p.status|default:"active" }}">
+                      <i class="fas fa-circle" style="font-size:6px;"></i>
+                      {{ p.get_status_display|default:"Admitted" }}
+                    </span>
+                  </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="4" class="text-center text-muted py-3">No patients yet</td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          <div class="table-pagination">
+            <span class="page-info">Page 1 of 1</span>
+            <div class="page-btns">
+              <button class="page-prev" disabled><i class="fas fa-chevron-left"></i></button>
+              <button class="page-btn active">1</button>
+              <button class="page-btn">2</button>
+              <button class="page-btn">3</button>
+              <button class="page-next"><i class="fas fa-chevron-right"></i></button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Upcoming Appointments -->
+        <div class="table-card">
+          <div class="table-card-header">
+            <div class="table-title"><i class="fas fa-calendar-alt"></i> Upcoming Appointments</div>
+            <div class="table-actions">
+              <input type="text" class="table-search" placeholder="Search appointments...">
+            </div>
+          </div>
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Patient <span class="sort-icon"><i class="fas fa-sort"></i></span></th>
+                  <th>Doctor <span class="sort-icon"><i class="fas fa-sort"></i></span></th>
+                  <th>Date <span class="sort-icon"><i class="fas fa-sort"></i></span></th>
+                  <th>Status <span class="sort-icon"><i class="fas fa-sort"></i></span></th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for apt in upcoming_appointments %}
+                <tr>
+                  <td>{{ apt.patient.first_name|default:"Emily" }} {{ apt.patient.last_name|default:"Clark" }}</td>
+                  <td>Dr. {{ apt.doctor.first_name|default:"James" }}</td>
+                  <td>{{ apt.appointment_date|date:"d M Y"|default:"15 Jul 2026" }}</td>
+                  <td>
+                    <span class="status-badge {{ apt.status|default:"pending" }}">
+                      <i class="fas fa-circle" style="font-size:6px;"></i>
+                      {{ apt.get_status_display|default:"Scheduled" }}
+                    </span>
+                  </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="4" class="text-center text-muted py-3">No upcoming appointments</td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          <div class="table-pagination">
+            <span class="page-info">Page 1 of 1</span>
+            <div class="page-btns">
+              <button class="page-prev" disabled><i class="fas fa-chevron-left"></i></button>
+              <button class="page-btn active">1</button>
+              <button class="page-btn">2</button>
+              <button class="page-next"><i class="fas fa-chevron-right"></i></button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Predictions -->
+        <div class="table-card">
+          <div class="table-card-header">
+            <div class="table-title"><i class="fas fa-robot"></i> Recent Predictions</div>
+            <div class="table-actions">
+              <input type="text" class="table-search" placeholder="Search...">
+            </div>
+          </div>
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Type <span class="sort-icon"><i class="fas fa-sort"></i></span></th>
+                  <th>Date <span class="sort-icon"><i class="fas fa-sort"></i></span></th>
+                  <th>Value <span class="sort-icon"><i class="fas fa-sort"></i></span></th>
+                  <th>Confidence <span class="sort-icon"><i class="fas fa-sort"></i></span></th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for pred in recent_predictions %}
+                <tr>
+                  <td>{{ pred.get_prediction_type_display|default:"Bed Occupancy" }}</td>
+                  <td>{{ pred.predicted_date|date:"d M"|default:"22 Jun" }}</td>
+                  <td><strong>{{ pred.predicted_value|default:"152" }}</strong></td>
+                  <td>
+                    <span class="status-badge info">
+                      <i class="fas fa-circle" style="font-size:6px;"></i>
+                      {{ pred.confidence_score|default:"94" }}%
+                    </span>
+                  </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="4" class="text-center text-muted py-3">No predictions yet</td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          <div class="table-pagination">
+            <span class="page-info">Page 1 of 1</span>
+            <div class="page-btns">
+              <button class="page-prev" disabled><i class="fas fa-chevron-left"></i></button>
+              <button class="page-btn active">1</button>
+              <button class="page-btn">2</button>
+              <button class="page-btn">3</button>
+              <button class="page-next"><i class="fas fa-chevron-right"></i></button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Risk Alerts -->
+        <div class="table-card">
+          <div class="table-card-header">
+            <div class="table-title"><i class="fas fa-shield-exclamation"></i> Risk Alerts</div>
+            <div class="table-actions">
+              <input type="text" class="table-search" placeholder="Search...">
+            </div>
+          </div>
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Patient <span class="sort-icon"><i class="fas fa-sort"></i></span></th>
+                  <th>Risk Level <span class="sort-icon"><i class="fas fa-sort"></i></span></th>
+                  <th>Score <span class="sort-icon"><i class="fas fa-sort"></i></span></th>
+                  <th>Department <span class="sort-icon"><i class="fas fa-sort"></i></span></th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for risk in risk_alerts %}
+                <tr>
+                  <td><strong>{{ risk.patient_name|default:"Robert Smith" }}</strong></td>
+                  <td>
+                    <span class="status-badge {{ risk.risk_level|default:"critical" }}">
+                      <i class="fas fa-circle" style="font-size:6px;"></i>
+                      {{ risk.risk_level|title|default:"Critical" }}
+                    </span>
+                  </td>
+                  <td>{{ risk.risk_score|default:"92.5" }}%</td>
+                  <td>Cardiology</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="4" class="text-center text-muted py-3">No risk alerts</td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          <div class="table-pagination">
+            <span class="page-info">Page 1 of 1</span>
+            <div class="page-btns">
+              <button class="page-prev" disabled><i class="fas fa-chevron-left"></i></button>
+              <button class="page-btn active">1</button>
+              <button class="page-btn">2</button>
+              <button class="page-btn">3</button>
+              <button class="page-next"><i class="fas fa-chevron-right"></i></button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================================================================
+           10. EXTRA WIDGETS
+           ================================================================ -->
+      <section class="widgets-grid scroll-animate">
+        <!-- Weather Widget -->
+        <div class="widget-card weather-widget">
+          <div class="widget-header">
+            <div class="widget-icon orange"><i class="fas fa-cloud-sun"></i></div>
+            <div class="widget-title">Weather</div>
+          </div>
+          <div class="weather-main">
+            <div class="weather-icon"><i class="fas fa-sun"></i></div>
+            <div>
+              <div class="weather-temp">28&deg;C</div>
+              <div class="weather-desc">Sunny &bull; Feels like 31&deg;C</div>
+            </div>
+          </div>
+          <div class="weather-details">
+            <span class="weather-detail"><i class="fas fa-wind"></i> 12 km/h</span>
+            <span class="weather-detail"><i class="fas fa-tint"></i> 45%</span>
+            <span class="weather-detail"><i class="fas fa-eye"></i> 10 km</span>
+          </div>
+        </div>
+
+        <!-- Hospital Announcements -->
+        <div class="widget-card">
+          <div class="widget-header">
+            <div class="widget-icon blue"><i class="fas fa-bullhorn"></i></div>
+            <div class="widget-title">Announcements</div>
+          </div>
+          <div class="announcement-item">
+            <div class="announcement-text">New AI-powered diagnostic system available in Cardiology</div>
+            <div class="announcement-time"><i class="fas fa-clock"></i> 2 hours ago</div>
+          </div>
+          <div class="announcement-item">
+            <div class="announcement-text">Hospital expansion project: New wing opening next month</div>
+            <div class="announcement-time"><i class="fas fa-clock"></i> 5 hours ago</div>
+          </div>
+          <div class="announcement-item">
+            <div class="announcement-text">Staff training session on emergency protocols - Friday 3 PM</div>
+            <div class="announcement-time"><i class="fas fa-clock"></i> 1 day ago</div>
+          </div>
+        </div>
+
+        <!-- Top Performing Department -->
+        <div class="widget-card">
+          <div class="widget-header">
+            <div class="widget-icon purple"><i class="fas fa-trophy"></i></div>
+            <div class="widget-title">Top Department</div>
+          </div>
+          <div class="top-dept">
+            <div class="dept-rank">#1</div>
+            <div class="dept-name">Cardiology</div>
+            <div class="dept-metric">Highest patient satisfaction &amp; lowest wait times</div>
+            <div class="dept-stats">
+              <div class="dept-stat">
+                <div class="ds-value">85</div>
+                <div class="ds-label">Patients</div>
+              </div>
+              <div class="dept-stat">
+                <div class="ds-value">94%</div>
+                <div class="ds-label">Satisfaction</div>
+              </div>
+              <div class="dept-stat">
+                <div class="ds-value">12</div>
+                <div class="ds-label">Doctors</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Daily Summary -->
+        <div class="widget-card">
+          <div class="widget-header">
+            <div class="widget-icon teal"><i class="fas fa-clipboard-list"></i></div>
+            <div class="widget-title">Daily Summary</div>
+          </div>
+          <div class="daily-summary">
+            <div class="summary-item">
+              <span class="summary-label"><i class="fas fa-sign-in-alt" style="color:var(--primary);margin-right:6px;"></i> Admissions Today</span>
+              <span class="summary-value good">18</span>
+            </div>
+            <div class="summary-item">
+              <span class="summary-label"><i class="fas fa-sign-out-alt" style="color:var(--teal);margin-right:6px;"></i> Discharges Today</span>
+              <span class="summary-value good">12</span>
+            </div>
+            <div class="summary-item">
+              <span class="summary-label"><i class="fas fa-procedures" style="color:var(--orange);margin-right:6px;"></i> Surgeries Scheduled</span>
+              <span class="summary-value warning">8</span>
+            </div>
+            <div class="summary-item">
+              <span class="summary-label"><i class="fas fa-flask" style="color:var(--purple);margin-right:6px;"></i> Lab Reports Pending</span>
+              <span class="summary-value bad">23</span>
+            </div>
+            <div class="summary-item">
+              <span class="summary-label"><i class="fas fa-prescription" style="color:var(--cyan);margin-right:6px;"></i> Prescriptions Filled</span>
+              <span class="summary-value good">142</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bed Utilization Meter -->
+        <div class="widget-card">
+          <div class="widget-header">
+            <div class="widget-icon red"><i class="fas fa-bed"></i></div>
+            <div class="widget-title">Bed Utilization</div>
+          </div>
+          <div class="bed-meter">
+            <div class="meter-label">
+              <span>Overall Utilization</span>
+              <span><strong>{{ bed_utilization_rate|default:"76" }}%</strong></span>
+            </div>
+            <div class="meter-bar">
+              <div class="meter-fill" style="width: {{ bed_utilization_rate|default:76 }}%;"></div>
+            </div>
+          </div>
+          <div class="bed-meter" style="margin-top:16px;">
+            <div class="meter-label">
+              <span>ICU</span>
+              <span><strong>82%</strong></span>
+            </div>
+            <div class="meter-bar">
+              <div class="meter-fill" style="width:82%;"></div>
+            </div>
+          </div>
+          <div class="bed-meter" style="margin-top:16px;">
+            <div class="meter-label">
+              <span>Emergency</span>
+              <span><strong>68%</strong></span>
+            </div>
+            <div class="meter-bar">
+              <div class="meter-fill" style="width:68%;"></div>
+            </div>
+          </div>
+          <div class="bed-meter" style="margin-top:16px;">
+            <div class="meter-label">
+              <span>General Ward</span>
+              <span><strong>71%</strong></span>
+            </div>
+            <div class="meter-bar">
+              <div class="meter-fill" style="width:71%;"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Patient Satisfaction Score -->
+        <div class="widget-card">
+          <div class="widget-header">
+            <div class="widget-icon teal"><i class="fas fa-heart"></i></div>
+            <div class="widget-title">Patient Satisfaction</div>
+          </div>
+          <div class="satisfaction-score">
+            <div class="sat-value">4.8</div>
+            <div class="sat-label">Out of 5.0 &bull; Based on 1,247 reviews</div>
+            <div class="sat-stars">
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star-half-alt"></i>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+    <!-- /page-content -->
+  </div>
+  <!-- /main-content -->
+
+  <!-- ====================================================================
+       SCRIPTS
+       ==================================================================== -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="{% static 'js/dashboard_new.js' %}"></script>
+
+  <script>
+    // Health score count-up
+    document.addEventListener('DOMContentLoaded', function () {
+      var scoreEl = document.getElementById('healthScoreValue');
+      if (scoreEl) {
+        var target = 92;
+        var duration = 1500;
+        var startTime = null;
+        function step(timestamp) {
+          if (!startTime) startTime = timestamp;
+          var progress = Math.min((timestamp - startTime) / duration, 1);
+          var eased = 1 - Math.pow(1 - progress, 3);
+          scoreEl.textContent = Math.floor(eased * target);
+          if (progress < 1) requestAnimationFrame(step);
+          else scoreEl.textContent = target;
+        }
+        requestAnimationFrame(step);
+      }
+    });
+  </script>
+</body>
+</html>

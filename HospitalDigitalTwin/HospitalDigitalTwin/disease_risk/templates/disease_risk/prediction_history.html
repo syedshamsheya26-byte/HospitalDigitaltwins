@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Prediction History - Hospital Digital Twin{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2><i class="bi bi-list-check"></i> Disease Risk Prediction History</h2>
+        <p class="text-muted mb-0">View and search all generated disease risk predictions</p>
+    </div>
+    <a href="{% url 'disease_risk:risk_assessment' %}" class="btn btn-primary btn-sm"><i class="bi bi-plus"></i> New Assessment</a>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card border-primary border-start border-4 shadow-sm">
+            <div class="card-body">
+                <h6 class="text-muted">Total Predictions</h6>
+                <h3 class="mb-0 text-primary">{{ predictions|length }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-success border-start border-4 shadow-sm">
+            <div class="card-body">
+                <h6 class="text-muted">Low Risk</h6>
+                <h3 class="mb-0 text-success">{{ risk_distribution|default:0 }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-warning border-start border-4 shadow-sm">
+            <div class="card-body">
+                <h6 class="text-muted">Medium Risk</h6>
+                <h3 class="mb-0 text-warning">{{ risk_distribution|default:0 }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-danger border-start border-4 shadow-sm">
+            <div class="card-body">
+                <h6 class="text-muted">High Risk</h6>
+                <h3 class="mb-0 text-danger">{{ risk_distribution|default:0 }}</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-2 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label">Disease</label>
+                <select name="disease" class="form-select">
+                    <option value="">All Diseases</option>
+                    <option value="diabetes" {% if selected_disease == 'diabetes' %}selected{% endif %}>Diabetes</option>
+                    <option value="heart_disease" {% if selected_disease == 'heart_disease' %}selected{% endif %}>Heart Disease</option>
+                    <option value="hypertension" {% if selected_disease == 'hypertension' %}selected{% endif %}>Hypertension</option>
+                    <option value="kidney_disease" {% if selected_disease == 'kidney_disease' %}selected{% endif %}>Kidney Disease</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Risk Level</label>
+                <select name="risk" class="form-select">
+                    <option value="">All Levels</option>
+                    <option value="low" {% if selected_risk == 'low' %}selected{% endif %}>Low</option>
+                    <option value="medium" {% if selected_risk == 'medium' %}selected{% endif %}>Medium</option>
+                    <option value="high" {% if selected_risk == 'high' %}selected{% endif %}>High</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Search Patient</label>
+                <input type="text" name="q" class="form-control" placeholder="Search by name..." value="{{ search_query }}">
+            </div>
+            <div class="col-md-3">
+                <button type="submit" class="btn btn-primary w-100"><i class="bi bi-search"></i> Filter</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Patient Name</th>
+                        <th>Disease</th>
+                        <th>Risk Level</th>
+                        <th>Risk Score</th>
+                        <th>Confidence</th>
+                        <th>Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for pred in predictions %}
+                    <tr>
+                        <td><strong>{{ pred.patient_name }}</strong></td>
+                        <td>{{ pred.get_disease_type_display }}</td>
+                        <td>
+                            <span class="badge bg-{% if pred.risk_level == 'high' %}danger{% elif pred.risk_level == 'medium' %}warning{% else %}success{% endif %}">
+                                {{ pred.get_risk_level_display }}
+                            </span>
+                        </td>
+                        <td>{{ pred.risk_score|floatformat:1 }}%</td>
+                        <td><span class="badge bg-info">{{ pred.confidence_score|floatformat:1 }}%</span></td>
+                        <td>{{ pred.created_at|date:"d M Y H:i" }}</td>
+                        <td>
+                            <a href="{% url 'disease_risk:prediction_detail' pred.pk %}" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-eye"></i> View
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-5">
+                            <i class="bi bi-inbox" style="font-size: 3rem;"></i>
+                            <p class="mt-3 mb-0">No predictions found</p>
+                            <a href="{% url 'disease_risk:risk_assessment' %}" class="btn btn-primary mt-2">Create First Assessment</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

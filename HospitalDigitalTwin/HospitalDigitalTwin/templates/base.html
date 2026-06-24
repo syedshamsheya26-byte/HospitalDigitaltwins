@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Hospital Digital Twin{% endblock %}</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link href="{% static 'css/minimal.css' %}" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+{% if user.is_authenticated or request.session.patient_name %}
+
+<div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-icon">H</div>
+    <div>
+      <div class="brand-text">Hospital DT</div>
+      <div class="brand-sub">Digital Twin Platform</div>
+    </div>
+  </div>
+  <nav class="sidebar-nav">
+    {% if user.is_authenticated %}
+    {% with role=user.userrole.role %}
+    <div class="nav-section">Main</div>
+    <a href="{% url 'dashboard:home' %}" class="nav-item">
+      <span class="nav-icon"><i class="bi bi-grid-1x2-fill"></i></span>
+      Dashboard
+    </a>
+    <a href="{% url 'patients:patient_list' %}" class="nav-item">
+      <span class="nav-icon"><i class="bi bi-people-fill"></i></span>
+      Patients
+    </a>
+    <a href="{% url 'disease_risk:risk_assessment' %}" class="nav-item">
+      <span class="nav-icon"><i class="bi bi-shield-fill-check"></i></span>
+      Disease Risk
+    </a>
+    <a href="{% url 'appointments:appointment_list' %}" class="nav-item">
+      <span class="nav-icon"><i class="bi bi-calendar-check-fill"></i></span>
+      Appointments
+    </a>
+    <a href="{% url 'beds:bed_list' %}" class="nav-item">
+      <span class="nav-icon"><i class="bi bi-bed-fill"></i></span>
+      Beds
+    </a>
+    <div class="nav-section">Operations</div>
+    <a href="{% url 'inventory:inventory_dashboard' %}" class="nav-item">
+      <span class="nav-icon"><i class="bi bi-capsule-fill"></i></span>
+      Inventory
+    </a>
+    <a href="{% url 'analytics:analytics_dashboard' %}" class="nav-item">
+      <span class="nav-icon"><i class="bi bi-graph-up-arrow"></i></span>
+      Analytics
+    </a>
+    <a href="{% url 'predictions:prediction_dashboard' %}" class="nav-item">
+      <span class="nav-icon"><i class="bi bi-robot"></i></span>
+      AI Predictions
+    </a>
+    <a href="{% url 'reports:report_list' %}" class="nav-item">
+      <span class="nav-icon"><i class="bi bi-file-text-fill"></i></span>
+      Reports
+    </a>
+    {% if role == 'admin' or role == 'doctor' %}
+    <div class="nav-section">Clinical</div>
+    <a href="{% url 'telemedicine:session_list' %}" class="nav-item">
+      <span class="nav-icon"><i class="bi bi-camera-video-fill"></i></span>
+      Telemedicine
+    </a>
+    <a href="{% url 'robotics:robot_list' %}" class="nav-item">
+      <span class="nav-icon"><i class="bi bi-robot"></i></span>
+      Robotics
+    </a>
+    {% endif %}
+    {% endwith %}
+    {% elif request.session.patient_name %}
+    <div class="nav-section">Patient Portal</div>
+    <a href="{% url 'dashboard:patient_dashboard' %}" class="nav-item">
+      <span class="nav-icon"><i class="bi bi-grid-1x2-fill"></i></span>
+      Dashboard
+    </a>
+    <a href="{% url 'dashboard:patient_profile' %}" class="nav-item">
+      <span class="nav-icon"><i class="bi bi-person-fill"></i></span>
+      My Profile
+    </a>
+    <a href="{% url 'dashboard:patient_medical_history' %}" class="nav-item">
+      <span class="nav-icon"><i class="bi bi-file-medical-fill"></i></span>
+      Medical History
+    </a>
+    <a href="{% url 'dashboard:patient_disease_risk_results' %}" class="nav-item">
+      <span class="nav-icon"><i class="bi bi-shield-fill-check"></i></span>
+      Risk Results
+    </a>
+    <a href="{% url 'dashboard:patient_health_analytics' %}" class="nav-item">
+      <span class="nav-icon"><i class="bi bi-graph-up-arrow"></i></span>
+      Analytics
+    </a>
+    <a href="{% url 'dashboard:patient_reports' %}" class="nav-item">
+      <span class="nav-icon"><i class="bi bi-download"></i></span>
+      Reports
+    </a>
+    {% endif %}
+  </nav>
+  <div class="sidebar-footer">
+    <div class="user-info">
+      {% if user.is_authenticated %}
+      <div class="user-avatar">{{ user.first_name|first|default:"A" }}{{ user.last_name|first|default:"U" }}</div>
+      <div>
+        <div class="user-name">{{ user.get_full_name|default:user.username }}</div>
+        <div class="user-role">{{ user.userrole.role|default:"Staff"|title }}</div>
+      </div>
+      {% elif request.session.patient_name %}
+      <div class="user-avatar">{{ request.session.patient_name|first|default:"P" }}</div>
+      <div>
+        <div class="user-name">{{ request.session.patient_name }}</div>
+        <div class="user-role">Patient</div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</aside>
+
+<div class="main-content">
+  <header class="top-header">
+    <div class="header-left">
+      <button class="mobile-toggle" id="mobileToggle"><i class="bi bi-list"></i></button>
+      <span class="page-title">{% block page_title %}Dashboard{% endblock %}</span>
+    </div>
+    <div class="header-right">
+      {% if user.is_authenticated %}
+      <div class="search-box">
+        <i class="bi bi-search search-icon"></i>
+        <input type="text" placeholder="Search..." id="globalSearch">
+      </div>
+      <button class="header-btn" title="Notifications">
+        <i class="bi bi-bell-fill"></i>
+        <span class="dot"></span>
+      </button>
+      {% endif %}
+      <a href="{% url 'accounts:logout' %}" class="header-btn" title="Logout">
+        <i class="bi bi-box-arrow-right"></i>
+      </a>
+    </div>
+  </header>
+  <div class="page-content">
+    {% include 'includes/messages.html' %}
+    {% block content %}{% endblock %}
+  </div>
+</div>
+
+{% endif %}
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="{% static 'js/main.js' %}"></script>
+{% block extra_scripts %}{% endblock %}
+</body>
+</html>
