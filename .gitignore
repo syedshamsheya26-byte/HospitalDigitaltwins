@@ -2,27 +2,49 @@
 __pycache__/
 *.py[cod]
 *$py.class
+*.so
 
 # Django
 db.sqlite3
+db.sqlite3-journal
+staticfiles/
+media/
+*.log
 
-# Virtual Environments
+# Virtual environments
 venv/
 env/
 .venv/
-
-# VS Code
-.vscode/
+ENV/
 
 # Environment variables
 .env
+.env.*
 
-# Logs
-*.log
-
-# Media uploads
-media/
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
 
 # OS files
 .DS_Store
 Thumbs.db
+
+# Build artifacts
+*.egg-info/
+dist/
+build/
+*.zip
+
+# Unrelated course folders (not part of this project)
+campushub/
+college/
+mjs/
+module1-python-solutions/
+Hospitaldigitaltwins/
+
+# Loose root-level files that belong to old/other projects
+manage.py
+static/
+templates/
