@@ -1,0 +1,25 @@
+=== PythonAnywhere Deployment for HospitalDigitalTwin ===
+
+1. Open the Web tab on PythonAnywhere
+2. Go to "WSGI configuration file" section
+3. Replace the contents with:
+
+import os
+import sys
+
+path = '/home/YOUR_USERNAME/HospitalDigitalTwin'
+if path not in sys.path:
+    sys.path.append(path)
+
+os.environ['DJANGO_SETTINGS_MODULE'] = 'HospitalDigitalTwin.settings'
+os.environ['PYTHON_EGG_CACHE'] = '/home/YOUR_USERNAME/.python-eggs'
+
+from django.core.wsgi import get_wsgi_application
+application = get_wsgi_application()
+
+(Replace YOUR_USERNAME with your actual PythonAnywhere username)
+
+4. Ensure the Virtualenv points to your HospitalDigitalTwin venv
+5. In the "Static files" section, add:
+   URL: /static/    Directory: /home/YOUR_USERNAME/HospitalDigitalTwin/static
+6. Reload the web app

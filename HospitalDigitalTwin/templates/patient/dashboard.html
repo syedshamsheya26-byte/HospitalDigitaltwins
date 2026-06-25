@@ -1,262 +1,195 @@
-{% extends 'base.html' %}
-{% load static %}
-{% block title %}Health Assistant - Hospital Digital Twin{% endblock %}
-{% block page_title %}Health Assistant{% endblock %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Health Assistant - Hospital Digital Twin</title>
+  
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  
+  <style>
+    /* CSS variables & structural resets from your minimal theme */
+    :root {
+      --primary: #0d6efd;
+      --primary-bg: #f0f7ff;
+      --accent: #0dcaf0;
+      --accent-bg: #f0fcfd;
+      --border: #dee2e6;
+      --text: #212529;
+      --text-muted: #6c757d;
+      --text-secondary: #495057;
+      --bg: #ffffff;
+      --error: #dc3545;
+      --error-bg: #fdf2f2;
+    }
 
-{% block content %}
-<style>
-html, body { height: 100%; }
-.main-content { display: flex; flex-direction: column; }
-.page-content { flex: 1; display: flex; flex-direction: column; padding: 0; }
-.chat-wrapper {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  max-width: 800px;
-  margin: 0 auto;
-  width: 100%;
-  padding: 16px;
-}
-.chat-messages {
-  flex: 1;
-  overflow-y: auto;
-  padding: 16px 0;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-.chat-msg {
-  max-width: 85%;
-  padding: 14px 18px;
-  border-radius: 16px;
-  font-size: 14px;
-  line-height: 1.7;
-  animation: fadeIn 0.3s ease;
-}
-.chat-msg.user {
-  align-self: flex-end;
-  background: var(--primary);
-  color: #fff;
-  border-bottom-right-radius: 4px;
-}
-.chat-msg.bot img {
-  width: 100%;
-  max-width: 500px;
-  border-radius: 12px;
-  margin: 8px 0;
-  display: block;
-}
-.chat-msg.bot {
-  align-self: flex-start;
-  background: var(--bg);
-  color: var(--text);
-  border-bottom-left-radius: 4px;
-  border: 1px solid var(--border);
-}
-.chat-msg.bot b { color: var(--accent); }
-.chat-msg.bot br { content: ""; display: block; margin: 6px 0; }
-.chat-input-area {
-  display: flex;
-  gap: 8px;
-  padding: 16px 0;
-  border-top: 1px solid var(--border);
-  background: var(--bg-card);
-}
-.chat-input-area input {
-  flex: 1;
-  padding: 14px 18px;
-  border: 1px solid var(--border);
-  border-radius: 24px;
-  font-size: 14px;
-  font-family: inherit;
-  color: var(--text);
-  background: var(--bg);
-  outline: none;
-  transition: border-color 0.2s;
-}
-.chat-input-area input:focus {
-  border-color: var(--primary);
-}
-.chat-input-area button {
-  width: 48px; height: 48px;
-  border-radius: 50%;
-  border: none;
-  background: var(--primary);
-  color: #fff;
-  font-size: 18px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background 0.2s;
-  flex-shrink: 0;
-}
-.chat-input-area button:hover { background: var(--primary-dark); }
-.chat-input-area button:disabled { opacity: 0.5; cursor: not-allowed; }
-.welcome-screen {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  padding: 40px 20px;
-  color: var(--text-muted);
-}
-.welcome-screen .icon { font-size: 4rem; margin-bottom: 16px; color: var(--primary); }
-.welcome-screen h3 { font-size: 20px; font-weight: 600; color: var(--text); margin-bottom: 8px; }
-.welcome-screen p { font-size: 14px; max-width: 400px; line-height: 1.6; }
-.suggestion-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 20px;
-  justify-content: center;
-}
-.suggestion-chips .chip {
-  padding: 8px 16px;
-  border: 1px solid var(--border);
-  border-radius: 20px;
-  font-size: 13px;
-  cursor: pointer;
-  transition: all 0.2s;
-  background: var(--bg-card);
-  color: var(--text-secondary);
-}
-.suggestion-chips .chip:hover {
-  border-color: var(--primary);
-  color: var(--primary);
-  background: var(--primary-bg);
-}
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-.typing-indicator {
-  align-self: flex-start;
-  padding: 14px 18px;
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  border-bottom-left-radius: 4px;
-  display: flex;
-  gap: 4px;
-  align-items: center;
-}
-.typing-indicator span {
-  width: 8px; height: 8px;
-  border-radius: 50%;
-  background: var(--text-muted);
-  animation: typing 1.4s infinite;
-}
-.typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
-.typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
-@keyframes typing {
-  0%, 60%, 100% { opacity: 0.3; transform: scale(1); }
-  30% { opacity: 1; transform: scale(1.2); }
-}
-</style>
+    body {
+      background-color: #f8f9fa;
+      font-family: system-ui, -apple-system, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 20px;
+    }
 
-<div class="chat-wrapper">
-  <div class="chat-messages" id="chatMessages">
-    <div class="welcome-screen" id="welcomeScreen">
-      <div class="icon"><i class="bi bi-robot"></i></div>
-      <h3>How can I help you today?</h3>
-      <p>Describe your symptoms or health concern and I'll provide immediate guidance.</p>
-      <div class="suggestion-chips">
-        <span class="chip" onclick="sendSuggestion('I have a headache')">🤕 Headache</span>
-        <span class="chip" onclick="sendSuggestion('I have a fever')">🌡️ Fever</span>
-        <span class="chip" onclick="sendSuggestion('My stomach hurts')">🤢 Stomach Pain</span>
-        <span class="chip" onclick="sendSuggestion('I have a cough')">🤧 Cough</span>
-        <span class="chip" onclick="sendSuggestion('My blood pressure is high')">❤️ BP Check</span>
-        <span class="chip" onclick="sendSuggestion('I have body pain')">💪 Body Pain</span>
+    /* Assistant Card Layout */
+    .assistant-container {
+      width: 100%;
+      max-width: 550px;
+    }
+
+    .card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      overflow: hidden;
+    }
+
+    .card-header {
+      background-color: #ffffff;
+      border-bottom: 1px solid var(--border);
+      padding: 16px;
+    }
+
+    .card-header h5 {
+      margin: 0;
+      font-weight: 600;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Chat Elements */
+    .insight-item {
+      padding: 10px 14px;
+      border-radius: 8px;
+      line-height: 1.4;
+    }
+
+    .form-input {
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 8px 12px;
+      outline: none;
+      font-size: 14px;
+      transition: border-color 0.2s;
+    }
+
+    .form-input:focus {
+      border-color: var(--primary);
+    }
+  </style>
+</head>
+<body>
+
+<div class="assistant-container">
+  <div class="card">
+    <div class="card-header">
+      <h5><i class="bi bi-robot" style="color: var(--primary);"></i> Health Assistant</h5>
+    </div>
+    
+    <div class="card-body" style="padding: 0;">
+      <div style="display: flex; flex-direction: column; height: 380px;">
+        
+        <div style="flex: 1; overflow-y: auto; padding: 16px;" id="chatMessages">
+          <div class="insight-item" style="margin-bottom: 8px; background: var(--primary-bg);">
+            <span style="font-size: 13px; color: var(--text-secondary);">
+              Hello xiu ming! Ask me about your health.
+            </span>
+          </div>
+        </div>
+        
+        <div style="padding: 12px 16px; border-top: 1px solid var(--border); display: flex; gap: 8px; background: #ffffff;">
+          <input type="text" id="chatInput" class="form-input" placeholder="Ask about your health..." style="flex: 1;">
+          <button class="btn btn-primary" id="chatSend" style="padding: 8px 16px; display: flex; align-items: center;">
+            <i class="bi bi-send-fill"></i>
+          </button>
+        </div>
+
       </div>
     </div>
   </div>
-  <div class="chat-input-area">
-    <input type="text" id="chatInput" placeholder="Describe your symptoms..." autofocus>
-    <button id="chatSend"><i class="bi bi-send-fill"></i></button>
-  </div>
 </div>
 
-<script>
-function sendSuggestion(text) {
-  document.getElementById('chatInput').value = text;
-  sendMessage();
-}
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
+<script>
 document.addEventListener('DOMContentLoaded', function () {
   var input = document.getElementById('chatInput');
   var sendBtn = document.getElementById('chatSend');
   var messages = document.getElementById('chatMessages');
-  var welcome = document.getElementById('welcomeScreen');
 
   function sendMessage() {
     var text = input.value.trim();
     if (!text) return;
 
-    if (welcome) welcome.style.display = 'none';
-
+    // 1. Append User Message
     var userMsg = document.createElement('div');
-    userMsg.className = 'chat-msg user';
-    userMsg.textContent = text;
+    userMsg.className = 'insight-item';
+    userMsg.style.cssText = 'margin-bottom: 8px; background: var(--primary-bg);';
+    userMsg.innerHTML = '<span style="font-size: 13px; font-weight: 500; color: var(--primary);">You:</span> <span style="font-size: 13px; color: var(--text);">' + text + '</span>';
     messages.appendChild(userMsg);
-    messages.scrollTop = messages.scrollHeight;
 
     input.value = '';
-    sendBtn.disabled = true;
+    messages.scrollTop = messages.scrollHeight;
 
+    // 2. Append Typing Indicator
     var typing = document.createElement('div');
-    typing.className = 'typing-indicator';
+    typing.className = 'insight-item';
     typing.id = 'typingIndicator';
-    typing.innerHTML = '<span></span><span></span><span></span>';
+    typing.style.cssText = 'margin-bottom: 8px; background: #f8f9fa;';
+    typing.innerHTML = '<span style="font-size: 13px; color: var(--text-muted);"><i class="bi bi-three-dots animated-dots"></i> Assistant is typing...</span>';
     messages.appendChild(typing);
     messages.scrollTop = messages.scrollHeight;
 
-    fetch('{% url "dashboard:patient_chat_respond" %}', {
+    // 3. Request Server Response
+    fetch('/dashboard/patient/chat-respond/', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
-        'X-CSRFToken': '{{ csrf_token }}'
+        'X-CSRFToken': 'nh8TWxYY9TVKGDuO7pVl0nw34o8grMrdoMw9nyiDR4WK7beowFmjZVFpN7Io4j98'
       },
       body: 'message=' + encodeURIComponent(text)
     })
     .then(function (r) { return r.json(); })
     .then(function (data) {
-      return new Promise(function(resolve) {
-        setTimeout(function() { resolve(data); }, 1200);
-      });
-    })
-    .then(function (data) {
       var typingEl = document.getElementById('typingIndicator');
       if (typingEl) typingEl.remove();
-      sendBtn.disabled = false;
 
       var botMsg = document.createElement('div');
-      botMsg.className = 'chat-msg bot';
+      botMsg.className = 'insight-item';
+      botMsg.style.cssText = 'margin-bottom: 8px; background: var(--accent-bg);';
       var response = data.response.replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').replace(/\n/g, '<br>');
-      botMsg.innerHTML = response;
+      botMsg.innerHTML = '<span style="font-size: 13px; font-weight: 500; color: var(--accent);">Assistant:</span> <span style="font-size: 13px; color: var(--text);">' + response + '</span>';
       messages.appendChild(botMsg);
       messages.scrollTop = messages.scrollHeight;
-      input.focus();
     })
     .catch(function () {
       var typingEl = document.getElementById('typingIndicator');
       if (typingEl) typingEl.remove();
-      sendBtn.disabled = false;
 
       var errMsg = document.createElement('div');
-      errMsg.className = 'chat-msg bot';
-      errMsg.innerHTML = 'Sorry, something went wrong. Please try again.';
+      errMsg.className = 'insight-item';
+      errMsg.style.cssText = 'margin-bottom: 8px; background: var(--error-bg);';
+      errMsg.innerHTML = '<span style="font-size: 13px; color: var(--error);">Sorry, something went wrong. Please try again.</span>';
       messages.appendChild(errMsg);
       messages.scrollTop = messages.scrollHeight;
     });
   }
 
-  sendBtn.addEventListener('click', sendMessage);
-  input.addEventListener('keydown', function (e) {
-    if (e.key === 'Enter') sendMessage();
-  });
+  if (sendBtn) sendBtn.addEventListener('click', sendMessage);
+  if (input) {
+    input.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') sendMessage();
+    });
+  }
 });
 </script>
-{% endblock %}
+
+</body>
+</html>
